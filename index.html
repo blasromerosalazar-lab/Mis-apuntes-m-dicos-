@@ -144,34 +144,64 @@
         div.style.transform = `translate(${x}px, ${y}px)`;
         div.setAttribute('data-x', x); div.setAttribute('data-y', y);
         div.innerHTML = `<div class="handle">⠿ MOVER APUNTE</div><textarea placeholder="Escribir nota médica...">${texto}</textarea>`;
-        
-        const tx = div.querySelector('textarea');
-        tx.oninput = (e) => {
-            const n = notasData.find(item => item.id === id);
-            if(n) n.texto = e.target.value;
-            guardar();
-        };
+// 1. Añadimos los datos de las materias que tenías en Figma
+const categoriasMaterias = [
+    { id: 1, name: "Bioquímica", topics: 24, color: "#4fc3f7" },
+    { id: 2, name: "Anatomía", topics: 18, color: "#ff8a80" },
+    { id: 3, name: "Fisiología", topics: 31, color: "#ccff90" },
+    { id: 4, name: "Farmacología", topics: 15, color: "#ffb74d" }
+];
 
-        document.getElementById('canvas-screen').appendChild(div);
+// 2. Función para mostrar la lista de MATERIAS (el segundo botón)
+function mostrarMaterias() {
+    const container = document.getElementById('subjects-container');
+    const header = document.querySelector('.header h1');
+    
+    // Cambiamos el título y activamos el botón en el menú
+    header.innerText = "Categorías";
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.nav-item')[1].classList.add('active');
 
-        interact(div).draggable({
-            allowFrom: '.handle',
-            listeners: {
-                move(event) {
-                    const t = event.target;
-                    const nx = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                    const ny = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                    t.style.transform = `translate(${nx}px, ${ny}px)`;
-                    t.setAttribute('data-x', nx); t.setAttribute('data-y', ny);
-                    const n = notasData.find(item => item.id === id);
-                    if(n) { n.x = nx; n.y = ny; }
-                },
-                end() { guardar(); }
-            }
-        });
-    }
+    document.getElementById('home-screen').style.display = 'block';
+    document.getElementById('canvas-screen').style.display = 'none';
+    document.getElementById('add-btn').style.display = 'none';
 
-    function guardar() { localStorage.setItem('medNotes', JSON.stringify(notasData)); }
-</script>
-</body>
-</html>
+    container.innerHTML = ""; // Limpiamos lo anterior
+    categoriasMaterias.forEach(m => {
+        container.innerHTML += `
+            <div class="card" onclick="mostrarTemas('${m.name}')" style="border-left: 8px solid ${m.color}">
+                <div class="card-info">
+                    <h2 style="color: ${m.color}; margin:0;">${m.name}</h2>
+                    <p style="margin:5px 0;">${m.topics} temas disponibles</p>
+                </div>
+                <div style="font-size: 20px;">➔</div>
+            </div>
+        `;
+    });
+}
+
+// 3. Función para volver a la lista de TEMAS (Reciente)
+function mostrarHome() {
+    const header = document.querySelector('.header h1');
+    header.innerText = "Tus materias";
+    
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.nav-item')[0].classList.add('active');
+
+    document.getElementById('home-screen').style.display = 'block';
+    document.getElementById('canvas-screen').style.display = 'none';
+    document.getElementById('add-btn').style.display = 'none';
+    
+    // Llamamos a la función que dibuja los temas (la que ya tenías)
+    renderizarListaTemas(); 
+}
+
+// 4. Asegúrate de que el menú inferior llame a estas funciones en el HTML:
+/* Sustituye tu <div id="toolbar"> por este:
+<div id="toolbar">
+    <button class="nav-item active" onclick="mostrarHome()"><span>🏠</span>Reciente</button>
+    <button class="nav-item" onclick="mostrarMaterias()"><span>📚</span>Materias</button>
+    <button class="nav-item"><span>📦</span>Modelos 3D</button>
+    <button class="nav-item"><span>👤</span>Yo</button>
+</div>
+*/
