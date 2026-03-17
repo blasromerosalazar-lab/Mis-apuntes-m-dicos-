@@ -3,110 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MedNotes v1.2</title>
+    <title>MedNotes Pro - UCV</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
-        body { margin: 0; overflow: hidden; background: var(--bg); font-family: sans-serif; touch-action: none; }
-        #canvas { width: 3000px; height: 3000px; background-image: radial-gradient(#d1d1d1 1px, transparent 1px); background-size: 30px 30px; position: relative; }
+        :root { 
+            --bg-dark: #0b0e14; 
+            --card-dark: #161b22;
+            --accent-blue: #3498db;
+            --text-gray: #8b949e;
+        }
         
-        .nota { 
-            position: absolute; background: white; border-radius: 10px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2); width: 220px;
-            padding: 5px; z-index: 10; touch-action: none;
+        body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+
+        /* Pantalla de Inicio / Lista de Temas */
+        #home-screen { padding: 20px; padding-bottom: 100px; max-width: 800px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-top: 10px; }
+        .header h1 { font-size: 24px; margin: 0; }
+
+        /* Tarjetas de Materias (Extraídas de tu Figma) */
+        .card { 
+            background: var(--card-dark); border-radius: 12px; padding: 18px; 
+            margin-bottom: 12px; border: 1px solid #30363d;
+            transition: transform 0.2s, background 0.2s; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        /* La barra gris para mover */
-        .handle { 
-            background: #eee; height: 30px; border-radius: 5px; 
-            cursor: move; display: flex; align-items: center; 
-            justify-content: center; font-size: 12px; color: #666; font-weight: bold;
-        }
-        .nota textarea { 
-            width: 95%; height: 100px; border: none; outline: none; 
-            font-size: 16px; padding: 5px; margin-top: 5px;
-            touch-action: auto !important; /* Esto obliga a permitir el toque para escribir */
-        }
-        #toolbar { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            background: var(--primary); padding: 10px 20px; border-radius: 50px; 
-            display: flex; gap: 10px; z-index: 1000;
-        }
-        button { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; }
+        .card:active { transform: scale(0.98); background: #1c2128; }
+        .card-info { flex: 1; }
+        .card-tag { font-size: 10px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+        .card h3 { margin: 0; font-size: 16px; line-height: 1.3; }
+        .card p { color: var(--text-gray); font-size: 13px; margin: 8px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card .date { font-size: 11px; color: #484f58; }
+        .card-icon { width: 60px; height: 60px; background: #0d1117; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: 15px; color: #30363d; }
+
+        /* Lienzo de Apuntes */
+        #canvas-screen { display: none; width: 3000px; height: 3000px; background-image: radial-gradient(#21262d 1px, transparent 1px); background-size: 30px 30px; position: relative; }
+        .btn-back { position: fixed; top: 20px; left: 20px; z-index: 1002; background: var(--accent-blue); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; }
+
+        /* Notas Estilo UCV */
+        .nota { position: absolute; background: white; border-radius: 10px; width: 240px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 10; color: #222; overflow: hidden; }
+        .handle { background: #f0f0f0; height: 30px; cursor: move; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #666; border-bottom: 1px solid #ddd; }
+        textarea { width: 100%; height: 120px; border: none; outline: none; padding: 10px; font-size: 15px; background: transparent; box-sizing: border-box; }
+
+        /* Menú Inferior */
+        #toolbar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #30363d; z-index: 1000; }
+        .nav-item { background: none; border: none; color: var(--text-gray); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item.active { color: var(--accent-blue); }
+
+        /* Botón Flotante */
+        #add-btn { position: fixed; bottom: 85px; right: 20px; background: #238636; width: 56px; height: 56px; border-radius: 50%; border: none; color: white; font-size: 30px; z-index: 1001; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: none; }
     </style>
 </head>
 <body>
 
-<div id="canvas"></div>
+<div id="home-screen">
+    <div class="header">
+        <h1>Tus materias</h1>
+        <div style="color: var(--text-gray);">🔍 ⋮</div>
+    </div>
+    
+    <div id="subjects-container">
+        </div>
+</div>
+
+<div id="canvas-screen">
+    <button class="btn-back" onclick="mostrarHome()">← Volver</button>
+</div>
+
+<button id="add-btn" onclick="nuevaNota()">+</button>
 
 <div id="toolbar">
-    <button onclick="nuevaNota()">+ Nueva Nota</button>
-    <button onclick="location.reload()" style="background:#95a5a6;">Actualizar</button>
+    <button class="nav-item active" onclick="mostrarHome()"><span>🏠</span>Reciente</button>
+    <button class="nav-item"><span>📚</span>Materias</button>
+    <button class="nav-item"><span>📦</span>Modelos 3D</button>
+    <button class="nav-item"><span>👤</span>Yo</button>
 </div>
 
 <script>
+    // Datos extraídos de tu diseño de Figma
+    const subjects = [
+        { id: 1, title: "ESTRUCTURA DEL ADN Y REPLICACIÓN", desc: "SÍNTESIS SIMULTÁNEA, SECUENCIA Y BIDIRECCIONAL...", date: "10 de marzo", color: "#4fc3f7" },
+        { id: 2, title: "METABOLISMO DEL GRUPO HEMO O HIERRO", desc: "Vías no enzimáticas de los intermediarios del ciclo...", date: "8 de febrero", color: "#ff8a80" },
+        { id: 3, title: "METABOLISMO DE CARBOHIDRATOS", desc: "GLUCOLISIS: GLC=G6P, F6P=F1,6BP, PEP=PIRUVATO...", date: "8 de febrero", color: "#ccff90" },
+        { id: 4, title: "REGULACIÓN HORMONAL", desc: "Inducida por cAMP que induce la fosforilación...", date: "8 de febrero", color: "#e0e0e0" },
+        { id: 5, title: "CATABOLISMO DE AMINOÁCIDOS", desc: "GLUTAMATO LIBERA SU GRUPO AMINO EN EL HÍGADO...", date: "8 de febrero", color: "#80deea" }
+    ];
+
     let notasData = JSON.parse(localStorage.getItem('medNotes')) || [];
 
+    // Cargar la lista al iniciar
     window.onload = () => {
-        notasData.forEach(data => renderizarNota(data.id, data.x, data.y, data.texto));
+        const container = document.getElementById('subjects-container');
+        subjects.forEach(s => {
+            container.innerHTML += `
+                <div class="card" onclick="abrirLienzo('${s.title}')">
+                    <div class="card-info">
+                        <div class="card-tag" style="color: ${s.color}"><span>★</span> TEMA</div>
+                        <h3 style="color: ${s.color}">${s.title}</h3>
+                        <p>${s.desc}</p>
+                        <span class="date">${s.date} de 2026</span>
+                    </div>
+                    <div class="card-icon">📄</div>
+                </div>
+            `;
+        });
+    };
+
+    function abrirLienzo(titulo) {
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('canvas-screen').style.display = 'block';
+        document.getElementById('add-btn').style.display = 'block';
+        document.body.style.overflow = 'auto';
+        renderizarNotas();
+    }
+
+    function mostrarHome() {
+        document.getElementById('home-screen').style.display = 'block';
+        document.getElementById('canvas-screen').style.display = 'none';
+        document.getElementById('add-btn').style.display = 'none';
+        document.body.style.overflow = 'hidden';
     }
 
     function nuevaNota() {
         const id = Date.now();
-        const data = { id: id, x: 50, y: 50, texto: "" };
+        const data = { id, x: 50, y: 150, texto: "" };
         notasData.push(data);
-        renderizarNota(id, 50, 50, "");
+        renderizarNota(id, 50, 150, "");
         guardar();
+    }
+
+    function renderizarNotas() {
+        const canvas = document.getElementById('canvas-screen');
+        // Mantener el botón de volver
+        canvas.innerHTML = '<button class="btn-back" onclick="mostrarHome()">← Volver</button>';
+        notasData.forEach(n => renderizarNota(n.id, n.x, n.y, n.texto));
     }
 
     function renderizarNota(id, x, y, texto) {
         const div = document.createElement('div');
         div.className = 'nota';
-        div.id = id;
         div.style.transform = `translate(${x}px, ${y}px)`;
-        div.setAttribute('data-x', x);
-        div.setAttribute('data-y', y);
+        div.setAttribute('data-x', x); div.setAttribute('data-y', y);
+        div.innerHTML = `<div class="handle">⠿ MOVER APUNTE</div><textarea placeholder="Escribir nota médica...">${texto}</textarea>`;
         
-        div.innerHTML = `
-            <div class="handle">⠿ MOVER AQUÍ</div>
-            <textarea placeholder="Escribir...">${texto}</textarea>
-        `;
-        
-        document.getElementById('canvas').appendChild(div);
+        const tx = div.querySelector('textarea');
+        tx.oninput = (e) => {
+            const n = notasData.find(item => item.id === id);
+            if(n) n.texto = e.target.value;
+            guardar();
+        };
 
-        const areaTexto = div.querySelector('textarea');
-        areaTexto.oninput = (e) => actualizarTexto(id, e.target.value);
+        document.getElementById('canvas-screen').appendChild(div);
 
         interact(div).draggable({
-            allowFrom: '.handle', 
+            allowFrom: '.handle',
             listeners: {
                 move(event) {
-                    const target = event.target;
-                    const nx = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                    const ny = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                    target.style.transform = `translate(${nx}px, ${ny}px)`;
-                    target.setAttribute('data-x', nx);
-                    target.setAttribute('data-y', ny);
-                    actualizarPosicion(id, nx, ny);
+                    const t = event.target;
+                    const nx = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+                    const ny = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+                    t.style.transform = `translate(${nx}px, ${ny}px)`;
+                    t.setAttribute('data-x', nx); t.setAttribute('data-y', ny);
+                    const n = notasData.find(item => item.id === id);
+                    if(n) { n.x = nx; n.y = ny; }
                 },
                 end() { guardar(); }
             }
         });
     }
 
-    function actualizarTexto(id, valor) {
-        const nota = notasData.find(n => n.id === id);
-        if(nota) nota.texto = valor;
-        guardar();
-    }
-
-    function actualizarPosicion(id, x, y) {
-        const nota = notasData.find(n => n.id === id);
-        if(nota) { nota.x = x; nota.y = y; }
-    }
-
-    function guardar() {
-        localStorage.setItem('medNotes', JSON.stringify(notasData));
-    }
+    function guardar() { localStorage.setItem('medNotes', JSON.stringify(notasData)); }
 </script>
 </body>
 </html>
