@@ -54,35 +54,72 @@
 </div>
 
 <script>
+    let notasData = JSON.parse(localStorage.getItem('medNotes')) || [];
+
+    window.onload = () => {
+        notasData.forEach(data => renderizarNota(data.id, data.x, data.y, data.texto));
+    }
+
     function nuevaNota() {
-        const canvas = document.getElementById('canvas');
+        const id = Date.now();
+        const data = { id: id, x: 50, y: 50, texto: "" };
+        notasData.push(data);
+        renderizarNota(id, 50, 50, "");
+        guardar();
+    }
+
+    function renderizarNota(id, x, y, texto) {
         const div = document.createElement('div');
         div.className = 'nota';
-        
-        // Posición inicial
-        div.style.left = '50px';
-        div.style.top = '50px';
+        div.id = id;
+        div.style.transform = translate(${x}px, ${y}px);
+        div.setAttribute('data-x', x);
+        div.setAttribute('data-y', y);
         
         div.innerHTML = 
-            <div style="font-size: 10px; color: #999; margin-bottom: 5px;">APUNTE MÉDICO</div>
-            <textarea placeholder="Empieza a escribir..."></textarea>
+            <div class="handle" style="font-size: 10px; color: #666; margin-bottom: 5px; cursor:grab; background:#eee; padding:5px; border-radius:4px; text-align:center;">⠿ ARRASTRAR AQUÍ</div>
+            <textarea oninput="actualizarTexto(${id}, this.value)">${texto}</textarea>
         ;
         
-        canvas.appendChild(div);
+        document.getElementById('canvas').appendChild(div);
 
-        // Hacer que se mueva con el dedo/stylus
         interact(div).draggable({
+            allowFrom: '.handle', 
             listeners: {
-                move (event) {
+                move(event) {
                     const target = event.target;
-                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                    target.style.transform = translate(${x}px, ${y}px);
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                }
+                    const nx = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                    const ny = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                    target.style.transform = translate(${nx}px, ${ny}px);
+                    target.setAttribute('data-x', nx);
+                    target.setAttribute('data-y', ny);
+                    actualizarPosicion(id, nx, ny);
+                },
+                end() { guardar(); }
             }
         });
+    }
+
+    function actualizarTexto(id, valor) {
+        const nota = notasData.find(n => n.id === id);
+        if(nota) nota.texto = valor;
+        guardar();
+    }
+
+    function actualizarPosicion(id, x, y) {
+        const nota = notasData.find(n => n.id === id);
+        if(nota) { nota.x = x; nota.y = y; }
+    }
+
+    function guardar() {
+        localStorage.setItem('medNotes', JSON.stringify(notasData));
+    }
+
+    function borrarTodo() {
+        if(confirm("¿Borrar todos los apuntes?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
 </script>
 </body>
