@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MedNotes v1.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
+        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        
+        /* El lienzo infinito */
+        #canvas { 
+            width: 5000px; height: 5000px; 
+            background-image: radial-gradient(#d1d1d1 1.5px, transparent 1.5px); 
+            background-size: 40px 40px; 
+            position: relative; touch-action: none;
+        }
+
+        /* Estilo de las notas */
+        .nota { 
+            position: absolute; background: white; border-radius: 12px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 250px;
+            padding: 10px; border-top: 5px solid var(--accent);
+            touch-action: none; z-index: 10;
+        }
+        .nota textarea { 
+            width: 100%; height: 120px; border: none; outline: none; 
+            font-size: 16px; color: #333; resize: none; background: transparent;
+        }
+
+        /* Menú Inferior */
+        #toolbar { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            background: var(--primary); padding: 12px 25px; border-radius: 50px; 
+            display: flex; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1000;
+        }
+        button { 
+            background: var(--accent); color: white; border: none; 
+            padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
+            transition: 0.3s;
+        }
+        button:active { transform: scale(0.9); }
+    </style>
+</head>
+<body>
+
+<div id="canvas">
+    </div>
+
+<div id="toolbar">
+    <button onclick="nuevaNota()">+ Nota de Clase</button>
+    <button style="background: #e67e22;">+ Ver 3D (Próximamente)</button>
+</div>
+
+<script>
+    function nuevaNota() {
+        const canvas = document.getElementById('canvas');
+        const div = document.createElement('div');
+        div.className = 'nota';
+        
+        // Posición inicial
+        div.style.left = '50px';
+        div.style.top = '50px';
+        
+        div.innerHTML = 
+            <div style="font-size: 10px; color: #999; margin-bottom: 5px;">APUNTE MÉDICO</div>
+            <textarea placeholder="Empieza a escribir..."></textarea>
+        ;
+        
+        canvas.appendChild(div);
+
+        // Hacer que se mueva con el dedo/stylus
+        interact(div).draggable({
+            listeners: {
+                move (event) {
+                    const target = event.target;
+                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                    target.style.transform = translate(${x}px, ${y}px);
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
