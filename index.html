@@ -16,29 +16,28 @@
         
         body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* VISTA 1: MENÚ PRINCIPAL */
-        #home-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        /* VISTAS */
+        #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
+        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
+
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
+        /* TARJETAS */
         .card { 
             background: var(--card-dark); border-radius: 12px; padding: 20px; 
             margin-bottom: 15px; border: 1px solid #30363d; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center;
-            transition: 0.2s;
         }
-        .card:active { transform: scale(0.98); background: #1c2128; }
-        .card h3 { margin: 0; font-size: 16px; color: var(--accent-blue); text-transform: uppercase; }
-        .card p { margin: 5px 0 0; font-size: 13px; color: var(--text-gray); }
+        .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
 
-        /* VISTA 2: EL LIENZO */
-        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
+        /* LIENZO PUNTEADO */
         #canvas-bg {
             width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
             background-size: 40px 40px;
         }
 
-        /* BARRA DE HERRAMIENTAS (ESTILO TU REFERENCIA) */
+        /* BARRA DE HERRAMIENTAS (TU ESTILO) */
         .floating-tools {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             background: var(--ui-glass); backdrop-filter: blur(10px);
@@ -51,55 +50,58 @@
             background: transparent; color: #8b949e; cursor: pointer; font-size: 20px;
             display: flex; align-items: center; justify-content: center;
         }
-        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); border: 1px solid rgba(52, 152, 219, 0.3); }
+        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); }
         .divider { width: 1px; height: 25px; background: #30363d; }
 
         /* NOTAS */
-        .nota { position: absolute; background: white; border-radius: 12px; width: 260px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; }
+        .nota { position: absolute; background: white; border-radius: 12px; width: 250px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; }
         .handle { background: #f5f5f5; height: 30px; cursor: move; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; }
         textarea { width: 100%; height: 120px; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; border-radius: 0 0 12px 12px; outline: none; }
 
-        /* BOTÓN VOLVER */
-        .back-btn {
-            position: fixed; top: 20px; left: 20px; z-index: 3000;
-            background: var(--ui-glass); border: 1px solid #30363d;
-            color: white; padding: 10px 18px; border-radius: 50px; cursor: pointer; font-weight: bold;
+        /* BOTÓN + MATERIAS */
+        #add-materia-btn {
+            position: fixed; bottom: 90px; right: 20px;
+            width: 60px; height: 60px; background: var(--accent-blue);
+            border-radius: 50%; border: none; color: white; font-size: 35px;
+            display: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 1001;
         }
 
-        /* NAV INFERIOR (Solo Home) */
+        /* NAVEGACIÓN INFERIOR */
         #bottom-nav { 
             position: fixed; bottom: 0; left: 0; width: 100%; 
             background: #0d1117; display: flex; justify-content: space-around; 
-            padding: 15px 0; border-top: 1px solid #30363d;
+            padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
         }
-        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; }
+        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; }
         .nav-item.active { color: var(--accent-blue); }
+
+        .empty-state { text-align: center; color: var(--text-gray); margin-top: 100px; padding: 20px; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-<div id="home-view">
+<div id="main-view">
     <div class="header">
-        <h1>Tus materias</h1>
+        <h1 id="view-title">Reciente</h1>
         <div style="font-size: 22px;">🔍</div>
     </div>
     
-    <div id="materias-lista">
-        </div>
+    <div id="content-list"></div>
+
+    <button id="add-materia-btn" onclick="nuevaMateria()">+</button>
 
     <div id="bottom-nav">
-        <div class="nav-item active">🏠<br>Reciente</div>
-        <div class="nav-item">📚<br>Materias</div>
+        <div class="nav-item active" onclick="cambiarSeccion('reciente')">🏠<br>Reciente</div>
+        <div class="nav-item" onclick="cambiarSeccion('materias')">📚<br>Materias</div>
         <div class="nav-item">📦<br>3D</div>
         <div class="nav-item">👤<br>Yo</div>
     </div>
 </div>
 
 <div id="canvas-view">
-    <button class="back-btn" onclick="cerrarLienzo()">← Salir al Menú</button>
-    
-    <div id="canvas-bg" data-x="0" data-y="0">
-        </div>
+    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
+    <div id="canvas-bg" data-x="0" data-y="0"></div>
 
     <div class="floating-tools">
         <button class="tool-btn">⛶</button>
@@ -114,118 +116,88 @@
 </div>
 
 <script>
-    // Datos de ejemplo basados en tu Figma
-    const misTemas = [
-        { id: 1, titulo: "ESTRUCTURA DEL ADN Y REPLICACIÓN", desc: "Síntesis simultánea y bidireccional..." },
-        { id: 2, titulo: "METABOLISMO DEL GRUPO HEMO", desc: "Vías enzimáticas y regulación..." }
-    ];
+    let materias = JSON.parse(localStorage.getItem('materias_db')) || [];
+    let recientes = JSON.parse(localStorage.getItem('recientes_db')) || [];
+    let seccionActual = 'reciente';
 
-    let notasGuardadas = JSON.parse(localStorage.getItem('medNotes')) || [];
-
-    // 1. FUNCIÓN PARA CARGAR EL MENÚ
-    function inicializarApp() {
-        const contenedor = document.getElementById('materias-lista');
-        contenedor.innerHTML = ""; 
+    function cambiarSeccion(tipo) {
+        seccionActual = tipo;
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        const items = document.querySelectorAll('.nav-item');
+        tipo === 'reciente' ? items[0].classList.add('active') : items[1].classList.add('active');
         
-        misTemas.forEach(tema => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.onclick = abrirLienzo; // Al tocar, abre el lienzo
-            card.innerHTML = `
-                <div>
-                    <h3>${tema.titulo}</h3>
-                    <p>${tema.desc}</p>
-                </div>
-                <div style="font-size: 20px; color: #30363d;">➔</div>
-            `;
-            contenedor.appendChild(card);
-        });
+        document.getElementById('view-title').innerText = tipo === 'reciente' ? "Reciente" : "Materias";
+        document.getElementById('add-materia-btn').style.display = tipo === 'materias' ? 'block' : 'none';
+        
+        renderizar();
     }
 
-    // 2. NAVEGACIÓN
+    function renderizar() {
+        const container = document.getElementById('content-list');
+        container.innerHTML = "";
+
+        if (seccionActual === 'reciente') {
+            if (recientes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay actividad reciente.<br>Los temas que crees aparecerán aquí.</div>';
+            } else {
+                recientes.forEach(r => {
+                    container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`;
+                });
+            }
+        } else {
+            if (materias.length === 0) {
+                container.innerHTML = '<div class="empty-state">No tienes materias creadas.<br>Usa el botón "+" para añadir una asignatura.</div>';
+            } else {
+                materias.forEach(m => {
+                    container.innerHTML += `<div class="card"><h3>${m.nombre}</h3><span>📁</span></div>`;
+                });
+            }
+        }
+    }
+
+    function nuevaMateria() {
+        const nombre = prompt("Nombre de la materia:");
+        if (nombre) {
+            materias.push({ id: Date.now(), nombre: nombre, temas: [] });
+            localStorage.setItem('materias_db', JSON.stringify(materias));
+            renderizar();
+        }
+    }
+
     function abrirLienzo() {
-        document.getElementById('home-view').style.display = 'none';
+        document.getElementById('main-view').style.display = 'none';
         document.getElementById('canvas-view').style.display = 'block';
-        dibujarNotasExistentes();
     }
 
     function cerrarLienzo() {
-        document.getElementById('home-view').style.display = 'block';
+        document.getElementById('main-view').style.display = 'block';
         document.getElementById('canvas-view').style.display = 'none';
     }
 
-    // 3. LÓGICA DE NOTAS
     function crearNota() {
-        const nueva = { id: Date.now(), x: 150, y: 150, texto: "" };
-        notasGuardadas.push(nueva);
-        renderizarNotaIndividual(nueva);
-        localStorage.setItem('medNotes', JSON.stringify(notasGuardadas));
-    }
-
-    function renderizarNotaIndividual(n) {
         const div = document.createElement('div');
         div.className = 'nota';
-        div.style.transform = `translate(${n.x}px, ${n.y}px)`;
-        div.setAttribute('data-x', n.x);
-        div.setAttribute('data-y', n.y);
-        
-        div.innerHTML = `
-            <div class="handle">⠿ ARRASTRAR</div>
-            <textarea placeholder="Escribe tus apuntes médicos...">${n.texto}</textarea>
-        `;
-        
-        div.querySelector('textarea').oninput = (e) => {
-            const index = notasGuardadas.findIndex(item => item.id === n.id);
-            if(index !== -1) notasGuardadas[index].texto = e.target.value;
-            localStorage.setItem('medNotes', JSON.stringify(notasGuardadas));
-        };
-
+        div.style.left = "100px"; div.style.top = "100px";
+        div.innerHTML = `<div class="handle">MOVER</div><textarea></textarea>`;
         document.getElementById('canvas-bg').appendChild(div);
-
-        // Hacer la nota movible
-        interact(div).draggable({
-            allowFrom: '.handle',
-            listeners: {
-                move(event) {
-                    const target = event.target;
-                    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                    target.style.transform = `translate(${x}px, ${y}px)`;
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                    
-                    const index = notasGuardadas.findIndex(item => item.id === n.id);
-                    if(index !== -1) {
-                        notasGuardadas[index].x = x;
-                        notasGuardadas[index].y = y;
-                    }
-                },
-                end() { localStorage.setItem('medNotes', JSON.stringify(notasGuardadas)); }
-            }
-        });
+        interact(div).draggable({ allowFrom: '.handle', listeners: { move(event) {
+            const t = event.target;
+            const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+            t.style.transform = `translate(${x}px, ${y}px)`;
+            t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+        }}});
     }
 
-    function dibujarNotasExistentes() {
-        document.getElementById('canvas-bg').innerHTML = "";
-        notasGuardadas.forEach(n => renderizarNotaIndividual(n));
-    }
+    interact('#canvas-view').draggable({ listeners: { move(event) {
+        const bg = document.getElementById('canvas-bg');
+        const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
+        bg.style.transform = `translate(${x}px, ${y}px)`;
+        bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
+    }}});
 
-    // 4. MOVER EL LIENZO (PANNING)
-    interact('#canvas-view').draggable({
-        listeners: {
-            move(event) {
-                const bg = document.getElementById('canvas-bg');
-                const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
-                bg.style.transform = `translate(${x}px, ${y}px)`;
-                bg.setAttribute('data-x', x);
-                bg.setAttribute('data-y', y);
-            }
-        }
-    });
-
-    // Arrancar la app
-    window.onload = inicializarApp;
+    window.onload = () => cambiarSeccion('reciente');
 </script>
 </body>
 </html>
