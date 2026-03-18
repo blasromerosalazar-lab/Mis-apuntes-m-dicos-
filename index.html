@@ -16,49 +16,56 @@
         
         body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
 
-        /* INTERFAZ UCV RESTAURADA */
-        #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
-        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; }
-
+        /* VISTA PRINCIPAL (RECUPERADA) */
+        #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .card { background: var(--card-dark); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #30363d; cursor: pointer; }
         .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
 
-        /* LIENZO PUNTEADO 40PX */
+        /* VISTA LIENZO */
+        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; }
         #canvas-bg {
             width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
             background-size: 40px 40px;
+            transform-origin: 0 0;
         }
 
-        /* BARRA GLASSMORPHISM */
+        /* BARRA DE HERRAMIENTAS GLASS */
         .floating-tools {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             background: var(--ui-glass); backdrop-filter: blur(10px);
             padding: 10px 20px; border-radius: 20px; border: 1px solid #30363d;
             display: flex; gap: 12px; align-items: center; z-index: 2000;
         }
-        .tool-btn { width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent; color: #8b949e; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .tool-btn { width: 44px; height: 44px; border: none; background: transparent; color: #8b949e; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .tool-btn.active { color: var(--accent-blue); }
-        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; }
+        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
         .tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
 
-        /* NOTAS */
+        /* NOTAS ESTILO ORIGINAL */
         .nota { 
             position: absolute; background: white; border-radius: 12px; 
             width: 250px; min-height: 120px; color: #111; 
             box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10;
             display: flex; flex-direction: column; border: 2px solid transparent;
+            touch-action: none;
         }
-        .nota.selected { border: 2px solid var(--accent-blue); }
+        .nota.selected { border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(52, 152, 219, 0.4); }
         
-        .resize-dot { position: absolute; width: 15px; height: 15px; background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; bottom: -7px; right: -7px; }
+        /* PUNTOS DE CONTROL */
+        .resize-dot { 
+            position: absolute; width: 18px; height: 18px; 
+            background: var(--accent-blue); border: 2px solid white; 
+            border-radius: 50%; display: none; z-index: 100; 
+            bottom: -9px; right: -9px; 
+        }
         .nota.selected .resize-dot { display: block; }
 
-        .handle { background: #f5f5f5; height: 35px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; touch-action: none; }
+        .handle { background: #f5f5f5; height: 35px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; cursor: grab; }
         textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; }
 
-        #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; cursor: pointer; }
+        #add-btn { position: fixed; bottom: 30px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -67,8 +74,9 @@
     <div class="header"><h1>Materias</h1></div>
     <div id="content-list">
         <div class="card" onclick="abrirLienzo()"><h3>Anatomía I</h3></div>
+        <div class="card" onclick="abrirLienzo()"><h3>Histología</h3></div>
     </div>
-    <button id="add-btn" onclick="ejecutarAccionMas()">+</button>
+    <button id="add-btn" onclick="crearMateria()">+</button>
 </div>
 
 <div id="canvas-view">
@@ -81,13 +89,26 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('mednotes_vUCV')) || { materias: [], recientes: [] };
     let notaActiva = null;
     let timerPresion;
-    let zIndexGlobal = 100;
+    let zIndexGlobal = 1000;
 
-    function abrirLienzo() { document.getElementById('main-view').style.display = 'none'; document.getElementById('canvas-view').style.display = 'block'; }
-    function cerrarLienzo() { document.getElementById('main-view').style.display = 'block'; document.getElementById('canvas-view').style.display = 'none'; }
+    function abrirLienzo() { 
+        document.getElementById('main-view').style.display = 'none'; 
+        document.getElementById('canvas-view').style.display = 'block'; 
+    }
+    function cerrarLienzo() { 
+        document.getElementById('main-view').style.display = 'block'; 
+        document.getElementById('canvas-view').style.display = 'none'; 
+    }
+
+    function crearMateria() {
+        const nom = prompt("Nombre de la materia:");
+        if(nom) {
+            const container = document.getElementById('content-list');
+            container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${nom}</h3></div>`;
+        }
+    }
 
     function crearNotaLienzo() {
         const div = document.createElement('div');
@@ -99,12 +120,16 @@
             <div class="resize-dot"></div>
         `;
         
-        // EVENTO PRESIÓN LARGA
+        // LÓGICA DE SELECCIÓN POR PRESIÓN LARGA
         div.addEventListener('pointerdown', (e) => {
             e.stopPropagation();
             div.style.zIndex = ++zIndexGlobal;
+            
             timerPresion = setTimeout(() => {
-                seleccionar(div);
+                deseleccionar();
+                notaActiva = div;
+                div.classList.add('selected');
+                document.getElementById('delete-tool').classList.add('enabled');
             }, 800);
         });
 
@@ -113,13 +138,6 @@
 
         document.getElementById('canvas-bg').appendChild(div);
         configurarInteract(div);
-    }
-
-    function seleccionar(el) {
-        deseleccionar();
-        notaActiva = el;
-        el.classList.add('selected');
-        document.getElementById('delete-tool').classList.add('enabled');
     }
 
     function deseleccionar() {
@@ -133,8 +151,8 @@
     function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionar(); } }
 
     function configurarInteract(el) {
-        interact(el)
-        .draggable({
+        // MOVIMIENTO (Siempre habilitado desde el handle)
+        interact(el).draggable({
             allowFrom: '.handle',
             listeners: { move(event) {
                 const t = event.target;
@@ -144,10 +162,10 @@
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
             }}
         })
+        // REDIMENSIONAMIENTO (Solo si está seleccionada)
         .resizable({
             edges: { right: '.resize-dot', bottom: '.resize-dot' },
             listeners: { move(event) {
-                // Solo redimensiona si la nota tiene el borde azul (seleccionada)
                 if (!event.target.classList.contains('selected')) return;
                 const t = event.target;
                 t.style.width = event.rect.width + 'px';
@@ -156,7 +174,7 @@
         });
     }
 
-    // Paneo del lienzo
+    // PANEO DEL LIENZO
     interact('#canvas-bg').draggable({
         listeners: { move(event) {
             if (notaActiva) return;
@@ -168,15 +186,6 @@
         }}
     });
 
-    function ejecutarAccionMas() {
-        const nom = prompt("Nombre de la materia:");
-        if(nom) {
-            db.materias.push({ id: Date.now(), nombre: nom });
-            localStorage.setItem('mednotes_vUCV', JSON.stringify(db));
-            const container = document.getElementById('content-list');
-            container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${nom}</h3></div>`;
-        }
-    }
 </script>
 </body>
 </html>
