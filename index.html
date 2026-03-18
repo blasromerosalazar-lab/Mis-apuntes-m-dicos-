@@ -3,174 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MedNotes Canvas</title>
+    <title>MedNotes Pro - UCV</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
         :root { 
             --bg-dark: #0b0e14; 
-            --ui-bg: rgba(22, 27, 34, 0.85); /* Transparencia estilo moderno */
+            --card-dark: #161b22;
             --accent-blue: #3498db;
-            --border: #30363d;
+            --text-gray: #8b949e;
+            --ui-glass: rgba(22, 27, 34, 0.9);
         }
         
-        body { margin: 0; background-color: var(--bg-dark); color: white; font-family: sans-serif; overflow: hidden; touch-action: none; }
+        body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* LIENZO OSCURO Y PUNTEADO */
-        #canvas-container {
-            width: 100vw; height: 100vh;
-            overflow: hidden; background-color: var(--bg-dark);
+        /* VISTA 1: MENÚ PRINCIPAL */
+        #home-view { 
+            display: block; height: 100vh; padding: 20px; 
+            box-sizing: border-box; overflow-y: auto; 
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { 
+            background: var(--card-dark); border-radius: 12px; padding: 18px; 
+            margin-bottom: 12px; border: 1px solid #30363d; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card h3 { margin: 0; font-size: 16px; color: var(--accent-blue); }
+
+        /* VISTA 2: EL LIENZO */
+        #canvas-view { 
+            display: none; width: 100vw; height: 100vh; 
+            position: relative; overflow: hidden; touch-action: none;
+        }
+        #canvas-bg {
+            width: 5000px; height: 5000px; position: absolute;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
-            background-size: 40px 40px; /* Tamaño del punteado */
-            position: relative;
+            background-size: 40px 40px;
         }
 
-        #canvas-content {
-            width: 5000px; height: 5000px;
-            position: absolute; top: 0; left: 0;
-        }
-
-        /* BARRA DE HERRAMIENTAS ESTILO REFERENCIA */
-        .toolbar-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--ui-bg);
-            backdrop-filter: blur(10px); /* Efecto cristal */
-            padding: 8px 15px;
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        /* BARRA DE HERRAMIENTAS (ESTILO TU REFERENCIA) */
+        .floating-tools {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: var(--ui-glass); backdrop-filter: blur(10px);
+            padding: 8px 15px; border-radius: 15px; border: 1px solid #30363d;
+            display: flex; gap: 8px; align-items: center; z-index: 2000;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            z-index: 1000;
         }
-
         .tool-btn {
-            width: 42px; height: 42px;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            background: transparent;
-            color: #8b949e;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 18px;
-            transition: 0.2s;
+            width: 40px; height: 40px; border-radius: 10px; border: none;
+            background: transparent; color: #8b949e; cursor: pointer; font-size: 18px;
         }
-
-        .tool-btn:hover { background: rgba(255,255,255,0.05); color: white; }
-        .tool-btn.active { background: rgba(52, 152, 219, 0.2); color: var(--accent-blue); border-color: var(--accent-blue); }
-
-        .divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.1); }
+        .divider { width: 1px; height: 20px; background: #30363d; }
 
         /* NOTAS */
         .nota { 
-            position: absolute; background: white; border-radius: 12px; 
-            width: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            z-index: 10; color: #111; overflow: hidden;
+            position: absolute; background: white; border-radius: 10px; 
+            width: 240px; color: #111; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .handle { background: #f0f0f0; height: 30px; cursor: move; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 10px; font-size: 10px; font-weight: bold; color: #666; }
-        textarea { width: 100%; height: 120px; border: none; outline: none; padding: 12px; font-size: 16px; box-sizing: border-box; resize: none; background: transparent; }
+        .handle { background: #eee; height: 25px; cursor: move; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+        textarea { width: 100%; height: 100px; border: none; padding: 10px; box-sizing: border-box; resize: none; font-size: 15px; }
 
         /* BOTÓN VOLVER */
-        .btn-exit {
-            position: fixed; top: 20px; left: 20px;
-            background: var(--ui-bg); border: 1px solid var(--border);
-            color: white; padding: 10px 20px; border-radius: 50px;
-            cursor: pointer; z-index: 1000;
+        .back-btn {
+            position: fixed; top: 20px; left: 20px; z-index: 2000;
+            background: var(--card-dark); border: 1px solid #30363d;
+            color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer;
+        }
+
+        /* NAV INFERIOR (Solo visible en Home) */
+        #bottom-nav { 
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: #0d1117; display: flex; justify-content: space-around; 
+            padding: 15px 0; border-top: 1px solid #30363d;
         }
     </style>
 </head>
 <body>
 
-<button class="btn-exit" onclick="location.href='index.html'">← Menú</button>
-
-<div id="canvas-container">
-    <div id="canvas-content">
+<div id="home-view">
+    <div class="header">
+        <h1>Tus materias</h1>
+        <span>🔍</span>
+    </div>
+    <div id="materias-lista">
         </div>
+
+    <div id="bottom-nav">
+        <div style="color:var(--accent-blue)">🏠<br><small>Reciente</small></div>
+        <div>📚<br><small>Materias</small></div>
+        <div>📦<br><small>3D</small></div>
+        <div>👤<br><small>Yo</small></div>
+    </div>
 </div>
 
-<div class="toolbar-container">
-    <button class="tool-btn" title="Expandir">⛶</button>
-    <button class="tool-btn" title="Ver">👁</button>
-    <button class="tool-btn" title="Ajustes">⚙</button>
-    <div class="divider"></div>
-    <button class="tool-btn" title="Lápiz">✎</button>
-    <button class="tool-btn" title="Borrador">⌫</button>
-    <button class="tool-btn active" title="Texto" onclick="nuevaNota()">T</button>
-    <button class="tool-btn" title="Imágenes">🖼</button>
-    <button class="tool-btn" title="Agregar">+</button>
-    <div class="divider"></div>
-    <button class="tool-btn" title="Seleccionar">⬚</button>
-    <button class="tool-btn" title="Mano">✋</button>
-    <div class="divider"></div>
-    <button class="tool-btn" title="Deshacer">↶</button>
-    <button class="tool-btn" title="Rehacer">↷</button>
-    <button class="tool-btn" title="Menú">⋮</button>
+<div id="canvas-view">
+    <button class="back-btn" onclick="cerrarLienzo()">← Volver al menú</button>
+    <div id="canvas-bg"></div>
+
+    <div class="floating-tools">
+        <button class="tool-btn">⛶</button>
+        <button class="tool-btn">⚙</button>
+        <div class="divider"></div>
+        <button class="tool-btn">✎</button>
+        <button class="tool-btn active" onclick="crearNota()">T</button>
+        <button class="tool-btn">+</button>
+        <div class="divider"></div>
+        <button class="tool-btn" onclick="cerrarLienzo()">🏠</button>
+    </div>
 </div>
 
 <script>
-    let notasData = JSON.parse(localStorage.getItem('medNotes')) || [];
-    const canvas = document.getElementById('canvas-content');
+    const temas = [
+        { id: 1, title: "ESTRUCTURA DEL ADN", desc: "Síntesis y replicación..." },
+        { id: 2, title: "METABOLISMO DEL HEMO", desc: "Vías enzimáticas..." }
+    ];
 
-    function nuevaNota() {
+    let notasData = JSON.parse(localStorage.getItem('medNotes')) || [];
+
+    // Mostrar menú al inicio
+    function cargarMenu() {
+        const lista = document.getElementById('materias-lista');
+        lista.innerHTML = "";
+        temas.forEach(t => {
+            lista.innerHTML += `
+                <div class="card" onclick="abrirLienzo()">
+                    <div>
+                        <h3>${t.title}</h3>
+                        <p style="color:gray; font-size:12px;">${t.desc}</p>
+                    </div>
+                    <span>➔</span>
+                </div>
+            `;
+        });
+    }
+
+    function abrirLienzo() {
+        document.getElementById('home-view').style.display = 'none';
+        document.getElementById('canvas-view').style.display = 'block';
+        renderizarNotas();
+    }
+
+    function cerrarLienzo() {
+        document.getElementById('home-view').style.display = 'block';
+        document.getElementById('canvas-view').style.display = 'none';
+    }
+
+    function crearNota() {
         const id = Date.now();
-        const data = { id, x: 200, y: 200, texto: "" };
-        notasData.push(data);
-        renderizarNota(data);
+        const n = { id, x: 100, y: 150, texto: "" };
+        notasData.push(n);
+        renderizarNota(n);
         guardar();
     }
 
-    function renderizarNota(data) {
+    function renderizarNota(n) {
         const div = document.createElement('div');
         div.className = 'nota';
-        div.style.transform = `translate(${data.x}px, ${data.y}px)`;
-        div.setAttribute('data-x', data.x); div.setAttribute('data-y', data.y);
-        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea>${data.texto}</textarea>`;
+        div.style.transform = `translate(${n.x}px, ${n.y}px)`;
+        div.setAttribute('data-x', n.x); div.setAttribute('data-y', n.y);
+        div.innerHTML = `<div class="handle">MOVER</div><textarea>${n.texto}</textarea>`;
         
         div.querySelector('textarea').oninput = (e) => {
-            const n = notasData.find(item => item.id === data.id);
-            if(n) n.texto = e.target.value;
+            const item = notasData.find(i => i.id === n.id);
+            if(item) item.texto = e.target.value;
             guardar();
         };
 
-        canvas.appendChild(div);
+        document.getElementById('canvas-bg').appendChild(div);
 
         interact(div).draggable({
             allowFrom: '.handle',
             listeners: {
                 move(event) {
                     const t = event.target;
-                    const nx = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                    const ny = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                    t.style.transform = `translate(${nx}px, ${ny}px)`;
-                    t.setAttribute('data-x', nx); t.setAttribute('data-y', ny);
-                    const n = notasData.find(item => item.id === data.id);
-                    if(n) { n.x = nx; n.y = ny; }
+                    const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+                    const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+                    t.style.transform = `translate(${x}px, ${y}px)`;
+                    t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+                    const item = notasData.find(i => i.id === n.id);
+                    if(item) { item.x = x; item.y = y; }
                 },
                 end() { guardar(); }
             }
         });
     }
 
-    // Cargar notas al inicio
-    notasData.forEach(n => renderizarNota(n));
+    function renderizarNotas() {
+        document.getElementById('canvas-bg').innerHTML = '';
+        notasData.forEach(n => renderizarNota(n));
+    }
 
     function guardar() { localStorage.setItem('medNotes', JSON.stringify(notasData)); }
 
-    // Mover el lienzo (Pan) con el dedo o mouse
-    interact('#canvas-container').draggable({
-        listeners: {
-            move(event) {
-                const t = canvas;
-                const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                t.style.transform = `translate(${x}px, ${y}px)`;
-                t.setAttribute('data-x', x);
-                t.setAttribute('data-y', y);
-            }
-        }
-    });
-</script>
-</body>
-</html>
+    //
