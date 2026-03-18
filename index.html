@@ -16,29 +16,29 @@
         
         body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* --- VISTAS --- */
+        /* VISTAS */
         #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
         #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .back-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-blue); margin-bottom: 20px; font-weight: bold; }
         
-        /* --- TARJETAS ESTILO FIGMA --- */
+        /* TARJETAS */
         .card { 
             background: var(--card-dark); border-radius: 12px; padding: 20px; 
             margin-bottom: 15px; border: 1px solid #30363d; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
 
-        /* --- LIENZO PUNTEADO (PRESERVADO) --- */
+        /* LIENZO PUNTEADO */
         #canvas-bg {
             width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
             background-size: 40px 40px;
         }
 
-        /* --- BARRA DE HERRAMIENTAS (ESTILO REFERENCIA) --- */
+        /* BARRA DE HERRAMIENTAS (TU ESTILO) */
         .floating-tools {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             background: var(--ui-glass); backdrop-filter: blur(10px);
@@ -51,48 +51,34 @@
             background: transparent; color: #8b949e; cursor: pointer; font-size: 20px;
             display: flex; align-items: center; justify-content: center;
         }
-        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); border: 1px solid rgba(52, 152, 219, 0.3); }
+        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); }
         .divider { width: 1px; height: 25px; background: #30363d; }
 
-        /* --- NOTAS --- */
-        .nota { position: absolute; background: white; border-radius: 12px; width: 250px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; }
-        .handle { background: #f5f5f5; height: 30px; cursor: move; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; }
-        textarea { width: 100%; height: 120px; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; border-radius: 0 0 12px 12px; outline: none; }
-
-        /* --- UI BOTONES --- */
-        #add-btn {
-            position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; 
-            background: var(--accent-blue); border-radius: 50%; border: none; 
-            color: white; font-size: 35px; display: none; cursor: pointer; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1001;
+        /* NOTAS CON RESIZE */
+        .nota { 
+            position: absolute; background: white; border-radius: 12px; 
+            width: 250px; min-height: 120px; color: #111; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10;
+            display: flex; flex-direction: column; overflow: hidden;
+            touch-action: none; 
         }
+        .handle { background: #f5f5f5; height: 30px; cursor: move; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; }
 
-        #bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; 
-            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
-        }
-        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; transition: 0.3s; }
+        /* BOTONES UI */
+        #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; cursor: pointer; z-index: 1001; }
+        #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000; }
+        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; }
         .nav-item.active { color: var(--accent-blue); }
-        
-        .empty-state { text-align: center; color: var(--text-gray); margin-top: 100px; padding: 20px; opacity: 0.6; }
     </style>
 </head>
 <body>
 
 <div id="main-view">
-    <div id="breadcrumb" class="back-nav" style="display:none;" onclick="volverAMaterias()">
-        <span>← Materias</span>
-    </div>
-    
-    <div class="header">
-        <h1 id="view-title">Reciente</h1>
-        <div style="font-size: 22px;">🔍</div>
-    </div>
-    
+    <div id="breadcrumb" class="back-nav" style="display:none;" onclick="volverAMaterias()"><span>← Materias</span></div>
+    <div class="header"><h1 id="view-title">Reciente</h1><div style="font-size: 22px;">🔍</div></div>
     <div id="content-list"></div>
-
     <button id="add-btn" onclick="ejecutarAccionMas()">+</button>
-
     <div id="bottom-nav">
         <div class="nav-item active" onclick="cambiarSeccion('reciente')">🏠<br>Reciente</div>
         <div class="nav-item" onclick="cambiarSeccion('materias')">📚<br>Materias</div>
@@ -102,33 +88,26 @@
 </div>
 
 <div id="canvas-view">
-    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer; font-weight:bold;">← Salir</button>
+    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
     <div id="canvas-bg" data-x="0" data-y="0"></div>
-
     <div class="floating-tools">
-        <button class="tool-btn">⛶</button>
-        <button class="tool-btn">⚙</button>
-        <div class="divider"></div>
-        <button class="tool-btn">✎</button>
-        <button class="tool-btn active" onclick="crearNotaLienzo()">T</button>
-        <button class="tool-btn" onclick="crearNotaLienzo()">+</button>
-        <div class="divider"></div>
+        <button class="tool-btn">⛶</button><button class="tool-btn">⚙</button><div class="divider"></div>
+        <button class="tool-btn">✎</button><button class="tool-btn active" onclick="crearNotaLienzo()">T</button><button class="tool-btn" onclick="crearNotaLienzo()">+</button><div class="divider"></div>
         <button class="tool-btn" onclick="cerrarLienzo()">🏠</button>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('mednotes_final_db')) || { materias: [], recientes: [] };
+    let db = JSON.parse(localStorage.getItem('mednotes_v2_db')) || { materias: [], recientes: [] };
     let seccionActual = 'reciente'; 
     let materiaSeleccionada = null; 
 
     function cambiarSeccion(tipo) {
-        seccionActual = tipo;
-        materiaSeleccionada = null;
+        seccionActual = tipo; materiaSeleccionada = null;
         document.getElementById('breadcrumb').style.display = 'none';
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        const items = document.querySelectorAll('.nav-item');
-        tipo === 'reciente' ? items[0].classList.add('active') : items[1].classList.add('active');
+        const idx = tipo === 'reciente' ? 0 : 1;
+        document.querySelectorAll('.nav-item')[idx].classList.add('active');
         document.getElementById('view-title').innerText = tipo === 'reciente' ? "Reciente" : "Materias";
         document.getElementById('add-btn').style.display = tipo === 'materias' ? 'block' : 'none';
         renderizar();
@@ -138,32 +117,13 @@
         const container = document.getElementById('content-list');
         container.innerHTML = "";
         if (seccionActual === 'reciente') {
-            if (db.recientes.length === 0) {
-                container.innerHTML = '<div class="empty-state">No hay actividad reciente.<br>Tus temas aparecerán aquí.</div>';
-            } else {
-                db.recientes.slice().reverse().forEach(r => {
-                    container.innerHTML += `<div class="card" onclick="abrirLienzo('${r.titulo}')"><h3>${r.titulo}</h3><span>📄</span></div>`;
-                });
-            }
-        } 
-        else if (seccionActual === 'materias' && !materiaSeleccionada) {
-            if (db.materias.length === 0) {
-                container.innerHTML = '<div class="empty-state">No tienes materias. Crea una con el "+".</div>';
-            } else {
-                db.materias.forEach(m => {
-                    container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`;
-                });
-            }
-        }
-        else if (materiaSeleccionada) {
+            if (db.recientes.length === 0) container.innerHTML = '<div style="text-align:center; margin-top:100px; color:gray;">No hay actividad reciente.</div>';
+            else db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
+        } else if (!materiaSeleccionada) {
+            db.materias.forEach(m => container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`);
+        } else {
             const mat = db.materias.find(m => m.id == materiaSeleccionada);
-            if (mat.temas.length === 0) {
-                container.innerHTML = '<div class="empty-state">Crea temas para '+mat.nombre+' con el "+".</div>';
-            } else {
-                mat.temas.forEach(t => {
-                    container.innerHTML += `<div class="card" onclick="abrirLienzo('${t}')"><h3>${t}</h3><span>📄</span></div>`;
-                });
-            }
+            mat.temas.forEach(t => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${t}</h3><span>📄</span></div>`);
         }
     }
 
@@ -172,31 +132,26 @@
         const mat = db.materias.find(m => m.id == id);
         document.getElementById('view-title').innerText = mat.nombre;
         document.getElementById('breadcrumb').style.display = 'flex';
-        document.getElementById('add-btn').style.display = 'block';
         renderizar();
     }
 
-    function volverAMaterias() {
-        materiaSeleccionada = null;
-        cambiarSeccion('materias');
-    }
+    function volverAMaterias() { materiaSeleccionada = null; cambiarSeccion('materias'); }
 
     function ejecutarAccionMas() {
-        if (!materiaSeleccionada) {
-            const nom = prompt("Nombre de la Materia:");
-            if(nom) { db.materias.push({ id: Date.now(), nombre: nom, temas: [] }); guardar(); }
-        } else {
-            const tema = prompt("Nombre del Tema (ej. Páncreas, Hígado):");
-            if(tema) {
+        const nom = prompt(materiaSeleccionada ? "Nombre del Tema:" : "Nombre de la Materia:");
+        if(nom) {
+            if(!materiaSeleccionada) db.materias.push({ id: Date.now(), nombre: nom, temas: [] });
+            else {
                 const mat = db.materias.find(m => m.id == materiaSeleccionada);
-                mat.temas.push(tema);
-                if(!db.recientes.find(r => r.titulo === tema)) db.recientes.push({ titulo: tema });
-                guardar();
+                mat.temas.push(nom);
+                if(!db.recientes.find(r => r.titulo === nom)) db.recientes.push({ titulo: nom });
             }
+            localStorage.setItem('mednotes_v2_db', JSON.stringify(db));
+            renderizar();
         }
     }
 
-    function abrirLienzo(titulo) {
+    function abrirLienzo() {
         document.getElementById('main-view').style.display = 'none';
         document.getElementById('canvas-view').style.display = 'block';
     }
@@ -204,29 +159,41 @@
     function cerrarLienzo() {
         document.getElementById('main-view').style.display = 'block';
         document.getElementById('canvas-view').style.display = 'none';
-        renderizar();
     }
 
+    // Lógica mejorada de Nota con RESIZE dinámico
     function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
-        div.style.left = "100px"; div.style.top = "100px";
+        div.style.left = "150px"; div.style.top = "150px";
         div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea>`;
         document.getElementById('canvas-bg').appendChild(div);
-        interact(div).draggable({ allowFrom: '.handle', listeners: { move(event) {
-            const t = event.target;
-            const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-            t.style.transform = `translate(${x}px, ${y}px)`;
-            t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-        }}});
+
+        interact(div)
+        .draggable({
+            allowFrom: '.handle',
+            listeners: { move(event) {
+                const t = event.target;
+                const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+                const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+                t.style.transform = `translate(${x}px, ${y}px)`;
+                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+            }}
+        })
+        .resizable({
+            edges: { right: true, bottom: true },
+            listeners: { move(event) {
+                const t = event.target;
+                t.style.width = event.rect.width + 'px';
+                t.style.height = event.rect.height + 'px';
+            }},
+            modifiers: [
+                interact.modifiers.restrictSize({ min: { width: 150, height: 100 } })
+            ]
+        });
     }
 
-    function guardar() {
-        localStorage.setItem('mednotes_final_db', JSON.stringify(db));
-        renderizar();
-    }
-
+    // Paneo del lienzo
     interact('#canvas-view').draggable({ listeners: { move(event) {
         const bg = document.getElementById('canvas-bg');
         const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
