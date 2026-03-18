@@ -54,16 +54,32 @@
         .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); }
         .divider { width: 1px; height: 25px; background: #30363d; }
 
-        /* NOTAS CON RESIZE */
+        /* NOTAS CON REBORDE Y PUNTOS */
         .nota { 
             position: absolute; background: white; border-radius: 12px; 
             width: 250px; min-height: 120px; color: #111; 
             box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10;
-            display: flex; flex-direction: column; overflow: hidden;
-            touch-action: none; 
+            display: flex; flex-direction: column; overflow: visible;
+            touch-action: none; border: 2px solid transparent; transition: border 0.2s;
         }
-        .handle { background: #f5f5f5; height: 30px; cursor: move; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; }
+        .nota.active-edit { 
+            border: 2px solid var(--accent-blue);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        /* PUNTOS DE CONTROL */
+        .resize-dot {
+            position: absolute; width: 10px; height: 10px;
+            background: var(--accent-blue); border: 2px solid white;
+            border-radius: 50%; display: none; z-index: 100;
+        }
+        .nota.active-edit .resize-dot { display: block; }
+        .dot-br { bottom: -6px; right: -6px; }
+        .dot-tr { top: -6px; right: -6px; }
+        .dot-bl { bottom: -6px; left: -6px; }
+
+        .handle { background: #f5f5f5; height: 30px; cursor: move; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; }
 
         /* BOTONES UI */
         #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; cursor: pointer; z-index: 1001; }
@@ -98,7 +114,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('mednotes_v2_db')) || { materias: [], recientes: [] };
+    let db = JSON.parse(localStorage.getItem('mednotes_v3_db')) || { materias: [], recientes: [] };
     let seccionActual = 'reciente'; 
     let materiaSeleccionada = null; 
 
@@ -146,7 +162,7 @@
                 mat.temas.push(nom);
                 if(!db.recientes.find(r => r.titulo === nom)) db.recientes.push({ titulo: nom });
             }
-            localStorage.setItem('mednotes_v2_db', JSON.stringify(db));
+            localStorage.setItem('mednotes_v3_db', JSON.stringify(db));
             renderizar();
         }
     }
@@ -161,39 +177,57 @@
         document.getElementById('canvas-view').style.display = 'none';
     }
 
-    // Lógica mejorada de Nota con RESIZE dinámico
     function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; div.style.top = "150px";
-        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea>`;
+        div.innerHTML = `
+            <div class="handle">⠿ MOVER</div>
+            <textarea placeholder="Escribir..."></textarea>
+            <div class="resize-dot dot-br"></div>
+            <div class="resize-dot dot-tr"></div>
+            <div class="resize-dot dot-bl"></div>
+        `;
         document.getElementById('canvas-bg').appendChild(div);
 
         interact(div)
         .draggable({
             allowFrom: '.handle',
-            listeners: { move(event) {
-                const t = event.target;
-                const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                t.style.transform = `translate(${x}px, ${y}px)`;
-                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }}
+            listeners: { 
+                start(event) { event.target.classList.add('active-edit'); },
+                move(event) {
+                    const t = event.target;
+                    const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+                    const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+                    t.style.transform = `translate(${x}px, ${y}px)`;
+                    t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+                },
+                end(event) { event.target.classList.remove('active-edit'); }
+            }
         })
         .resizable({
-            edges: { right: true, bottom: true },
-            listeners: { move(event) {
-                const t = event.target;
-                t.style.width = event.rect.width + 'px';
-                t.style.height = event.rect.height + 'px';
-            }},
+            edges: { right: true, bottom: true, top: true },
+            listeners: { 
+                start(event) { event.target.classList.add('active-edit'); },
+                move(event) {
+                    const t = event.target;
+                    let x = (parseFloat(t.getAttribute('data-x')) || 0);
+                    let y = (parseFloat(t.getAttribute('data-y')) || 0);
+                    t.style.width = event.rect.width + 'px';
+                    t.style.height = event.rect.height + 'px';
+                    x += event.deltaRect.left;
+                    y += event.deltaRect.top;
+                    t.style.transform = `translate(${x}px, ${y}px)`;
+                    t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+                },
+                end(event) { event.target.classList.remove('active-edit'); }
+            },
             modifiers: [
-                interact.modifiers.restrictSize({ min: { width: 150, height: 100 } })
+                interact.modifiers.restrictSize({ min: { width: 160, height: 100 } })
             ]
         });
     }
 
-    // Paneo del lienzo
     interact('#canvas-view').draggable({ listeners: { move(event) {
         const bg = document.getElementById('canvas-bg');
         const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
