@@ -16,28 +16,29 @@
         
         body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* VISTAS */
+        /* --- VISTAS --- */
         #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
         #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .back-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-blue); margin-bottom: 20px; font-weight: bold; }
         
-        /* TARJETAS */
+        /* --- TARJETAS ESTILO FIGMA --- */
         .card { 
             background: var(--card-dark); border-radius: 12px; padding: 20px; 
             margin-bottom: 15px; border: 1px solid #30363d; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
+        .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* LIENZO PUNTEADO */
+        /* --- LIENZO PUNTEADO (PRESERVADO) --- */
         #canvas-bg {
             width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
             background-size: 40px 40px;
         }
 
-        /* BARRA DE HERRAMIENTAS (TU ESTILO) */
+        /* --- BARRA DE HERRAMIENTAS (ESTILO REFERENCIA) --- */
         .floating-tools {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             background: var(--ui-glass); backdrop-filter: blur(10px);
@@ -50,38 +51,39 @@
             background: transparent; color: #8b949e; cursor: pointer; font-size: 20px;
             display: flex; align-items: center; justify-content: center;
         }
-        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); }
+        .tool-btn.active { color: var(--accent-blue); background: rgba(52, 152, 219, 0.15); border: 1px solid rgba(52, 152, 219, 0.3); }
         .divider { width: 1px; height: 25px; background: #30363d; }
 
-        /* NOTAS */
+        /* --- NOTAS --- */
         .nota { position: absolute; background: white; border-radius: 12px; width: 250px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; }
         .handle { background: #f5f5f5; height: 30px; cursor: move; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; }
         textarea { width: 100%; height: 120px; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; border-radius: 0 0 12px 12px; outline: none; }
 
-        /* BOTÓN + MATERIAS */
-        #add-materia-btn {
-            position: fixed; bottom: 90px; right: 20px;
-            width: 60px; height: 60px; background: var(--accent-blue);
-            border-radius: 50%; border: none; color: white; font-size: 35px;
-            display: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            z-index: 1001;
+        /* --- UI BOTONES --- */
+        #add-btn {
+            position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; 
+            background: var(--accent-blue); border-radius: 50%; border: none; 
+            color: white; font-size: 35px; display: none; cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1001;
         }
 
-        /* NAVEGACIÓN INFERIOR */
         #bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            background: #0d1117; display: flex; justify-content: space-around; 
-            padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; 
+            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000;
         }
-        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; }
+        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; transition: 0.3s; }
         .nav-item.active { color: var(--accent-blue); }
-
-        .empty-state { text-align: center; color: var(--text-gray); margin-top: 100px; padding: 20px; line-height: 1.6; }
+        
+        .empty-state { text-align: center; color: var(--text-gray); margin-top: 100px; padding: 20px; opacity: 0.6; }
     </style>
 </head>
 <body>
 
 <div id="main-view">
+    <div id="breadcrumb" class="back-nav" style="display:none;" onclick="volverAMaterias()">
+        <span>← Materias</span>
+    </div>
+    
     <div class="header">
         <h1 id="view-title">Reciente</h1>
         <div style="font-size: 22px;">🔍</div>
@@ -89,7 +91,7 @@
     
     <div id="content-list"></div>
 
-    <button id="add-materia-btn" onclick="nuevaMateria()">+</button>
+    <button id="add-btn" onclick="ejecutarAccionMas()">+</button>
 
     <div id="bottom-nav">
         <div class="nav-item active" onclick="cambiarSeccion('reciente')">🏠<br>Reciente</div>
@@ -100,7 +102,7 @@
 </div>
 
 <div id="canvas-view">
-    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
+    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer; font-weight:bold;">← Salir</button>
     <div id="canvas-bg" data-x="0" data-y="0"></div>
 
     <div class="floating-tools">
@@ -108,63 +110,93 @@
         <button class="tool-btn">⚙</button>
         <div class="divider"></div>
         <button class="tool-btn">✎</button>
-        <button class="tool-btn active" onclick="crearNota()">T</button>
-        <button class="tool-btn" onclick="crearNota()">+</button>
+        <button class="tool-btn active" onclick="crearNotaLienzo()">T</button>
+        <button class="tool-btn" onclick="crearNotaLienzo()">+</button>
         <div class="divider"></div>
         <button class="tool-btn" onclick="cerrarLienzo()">🏠</button>
     </div>
 </div>
 
 <script>
-    let materias = JSON.parse(localStorage.getItem('materias_db')) || [];
-    let recientes = JSON.parse(localStorage.getItem('recientes_db')) || [];
-    let seccionActual = 'reciente';
+    let db = JSON.parse(localStorage.getItem('mednotes_final_db')) || { materias: [], recientes: [] };
+    let seccionActual = 'reciente'; 
+    let materiaSeleccionada = null; 
 
     function cambiarSeccion(tipo) {
         seccionActual = tipo;
+        materiaSeleccionada = null;
+        document.getElementById('breadcrumb').style.display = 'none';
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         const items = document.querySelectorAll('.nav-item');
         tipo === 'reciente' ? items[0].classList.add('active') : items[1].classList.add('active');
-        
         document.getElementById('view-title').innerText = tipo === 'reciente' ? "Reciente" : "Materias";
-        document.getElementById('add-materia-btn').style.display = tipo === 'materias' ? 'block' : 'none';
-        
+        document.getElementById('add-btn').style.display = tipo === 'materias' ? 'block' : 'none';
         renderizar();
     }
 
     function renderizar() {
         const container = document.getElementById('content-list');
         container.innerHTML = "";
-
         if (seccionActual === 'reciente') {
-            if (recientes.length === 0) {
-                container.innerHTML = '<div class="empty-state">No hay actividad reciente.<br>Los temas que crees aparecerán aquí.</div>';
+            if (db.recientes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay actividad reciente.<br>Tus temas aparecerán aquí.</div>';
             } else {
-                recientes.forEach(r => {
-                    container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`;
+                db.recientes.slice().reverse().forEach(r => {
+                    container.innerHTML += `<div class="card" onclick="abrirLienzo('${r.titulo}')"><h3>${r.titulo}</h3><span>📄</span></div>`;
                 });
             }
+        } 
+        else if (seccionActual === 'materias' && !materiaSeleccionada) {
+            if (db.materias.length === 0) {
+                container.innerHTML = '<div class="empty-state">No tienes materias. Crea una con el "+".</div>';
+            } else {
+                db.materias.forEach(m => {
+                    container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`;
+                });
+            }
+        }
+        else if (materiaSeleccionada) {
+            const mat = db.materias.find(m => m.id == materiaSeleccionada);
+            if (mat.temas.length === 0) {
+                container.innerHTML = '<div class="empty-state">Crea temas para '+mat.nombre+' con el "+".</div>';
+            } else {
+                mat.temas.forEach(t => {
+                    container.innerHTML += `<div class="card" onclick="abrirLienzo('${t}')"><h3>${t}</h3><span>📄</span></div>`;
+                });
+            }
+        }
+    }
+
+    function verTemasMateria(id) {
+        materiaSeleccionada = id;
+        const mat = db.materias.find(m => m.id == id);
+        document.getElementById('view-title').innerText = mat.nombre;
+        document.getElementById('breadcrumb').style.display = 'flex';
+        document.getElementById('add-btn').style.display = 'block';
+        renderizar();
+    }
+
+    function volverAMaterias() {
+        materiaSeleccionada = null;
+        cambiarSeccion('materias');
+    }
+
+    function ejecutarAccionMas() {
+        if (!materiaSeleccionada) {
+            const nom = prompt("Nombre de la Materia:");
+            if(nom) { db.materias.push({ id: Date.now(), nombre: nom, temas: [] }); guardar(); }
         } else {
-            if (materias.length === 0) {
-                container.innerHTML = '<div class="empty-state">No tienes materias creadas.<br>Usa el botón "+" para añadir una asignatura.</div>';
-            } else {
-                materias.forEach(m => {
-                    container.innerHTML += `<div class="card"><h3>${m.nombre}</h3><span>📁</span></div>`;
-                });
+            const tema = prompt("Nombre del Tema (ej. Páncreas, Hígado):");
+            if(tema) {
+                const mat = db.materias.find(m => m.id == materiaSeleccionada);
+                mat.temas.push(tema);
+                if(!db.recientes.find(r => r.titulo === tema)) db.recientes.push({ titulo: tema });
+                guardar();
             }
         }
     }
 
-    function nuevaMateria() {
-        const nombre = prompt("Nombre de la materia:");
-        if (nombre) {
-            materias.push({ id: Date.now(), nombre: nombre, temas: [] });
-            localStorage.setItem('materias_db', JSON.stringify(materias));
-            renderizar();
-        }
-    }
-
-    function abrirLienzo() {
+    function abrirLienzo(titulo) {
         document.getElementById('main-view').style.display = 'none';
         document.getElementById('canvas-view').style.display = 'block';
     }
@@ -172,13 +204,14 @@
     function cerrarLienzo() {
         document.getElementById('main-view').style.display = 'block';
         document.getElementById('canvas-view').style.display = 'none';
+        renderizar();
     }
 
-    function crearNota() {
+    function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "100px"; div.style.top = "100px";
-        div.innerHTML = `<div class="handle">MOVER</div><textarea></textarea>`;
+        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea>`;
         document.getElementById('canvas-bg').appendChild(div);
         interact(div).draggable({ allowFrom: '.handle', listeners: { move(event) {
             const t = event.target;
@@ -187,6 +220,11 @@
             t.style.transform = `translate(${x}px, ${y}px)`;
             t.setAttribute('data-x', x); t.setAttribute('data-y', y);
         }}});
+    }
+
+    function guardar() {
+        localStorage.setItem('mednotes_final_db', JSON.stringify(db));
+        renderizar();
     }
 
     interact('#canvas-view').draggable({ listeners: { move(event) {
