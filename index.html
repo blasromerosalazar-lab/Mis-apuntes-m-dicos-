@@ -14,7 +14,7 @@
             --ui-glass: rgba(22, 27, 34, 0.95);
         }
         
-        body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; user-select: none; }
+        body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
         /* VISTAS */
         #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
@@ -31,20 +31,19 @@
         }
         .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
 
-        /* LIENZO PUNTEADO (PRESERVADO 40PX) */
+        /* LIENZO PUNTEADO 40PX */
         #canvas-bg {
             width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
             background-size: 40px 40px;
         }
 
-        /* BARRA DE HERRAMIENTAS GLASSMORPISM */
+        /* BARRA DE HERRAMIENTAS */
         .floating-tools {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             background: var(--ui-glass); backdrop-filter: blur(10px);
             padding: 10px 20px; border-radius: 20px; border: 1px solid #30363d;
             display: flex; gap: 12px; align-items: center; z-index: 2000;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
         .tool-btn {
             width: 44px; height: 44px; border-radius: 12px; border: none;
@@ -52,7 +51,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .tool-btn.active { color: var(--accent-blue); }
-        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
+        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; }
         .tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
         .divider { width: 1px; height: 25px; background: #30363d; }
 
@@ -62,30 +61,26 @@
             width: 250px; min-height: 120px; color: #111; 
             box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10;
             display: flex; flex-direction: column; overflow: visible;
-            border: 2px solid transparent;
+            border: 2px solid transparent; touch-action: none;
         }
-        .nota.selected { 
-            border: 2px solid var(--accent-blue);
-            box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
-        }
+        .nota.selected { border: 2px solid var(--accent-blue); }
         
-        /* PUNTOS DE CONTROL */
         .resize-dot {
-            position: absolute; width: 12px; height: 12px;
+            position: absolute; width: 10px; height: 10px;
             background: var(--accent-blue); border: 2px solid white;
             border-radius: 50%; display: none; z-index: 100;
         }
         .nota.selected .resize-dot { display: block; }
-        .dot-br { bottom: -6px; right: -6px; cursor: nwse-resize; }
-        .dot-tr { top: -6px; right: -6px; cursor: nesw-resize; }
-        .dot-bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .dot-br { bottom: -6px; right: -6px; }
+        .dot-tr { top: -6px; right: -6px; }
+        .dot-bl { bottom: -6px; left: -6px; }
 
-        .handle { background: #f5f5f5; height: 30px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; user-select: text; }
+        .handle { background: #f5f5f5; height: 30px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; }
+        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; }
 
-        #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; cursor: pointer; z-index: 1001; }
-        #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000; }
-        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; }
+        #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; }
+        #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; }
+        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); flex: 1; }
         .nav-item.active { color: var(--accent-blue); }
     </style>
 </head>
@@ -93,7 +88,7 @@
 
 <div id="main-view">
     <div id="breadcrumb" class="back-nav" style="display:none;" onclick="volverAMaterias()"><span>← Materias</span></div>
-    <div class="header"><h1 id="view-title">Reciente</h1><div style="font-size: 22px;">🔍</div></div>
+    <div class="header"><h1>Reciente</h1><div style="font-size: 22px;">🔍</div></div>
     <div id="content-list"></div>
     <button id="add-btn" onclick="ejecutarAccionMas()">+</button>
     <div id="bottom-nav">
@@ -105,10 +100,11 @@
 </div>
 
 <div id="canvas-view">
-    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
+    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px;">← Salir</button>
     <div id="canvas-bg" data-x="0" data-y="0" onclick="deseleccionar()"></div>
     <div class="floating-tools">
-        <button class="tool-btn">⛶</button><button class="tool-btn">⚙</button><div class="divider"></div>
+        <button class="tool-btn">⛶</button><button class="tool-btn">⚙</button>
+        <div class="divider"></div>
         <button class="tool-btn">✎</button>
         <button class="tool-btn active" onclick="crearNotaLienzo()">T</button>
         <button id="delete-tool" class="tool-btn danger" onclick="eliminarNota()">🗑️</button>
@@ -118,7 +114,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('mednotes_vFinal_db')) || { materias: [], recientes: [] };
+    let db = JSON.parse(localStorage.getItem('mednotes_db')) || { materias: [], recientes: [] };
     let seccionActual = 'reciente'; 
     let materiaSeleccionada = null; 
     let notaActiva = null;
@@ -127,10 +123,6 @@
     function cambiarSeccion(tipo) {
         seccionActual = tipo; materiaSeleccionada = null;
         document.getElementById('breadcrumb').style.display = 'none';
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        const idx = tipo === 'reciente' ? 0 : 1;
-        document.querySelectorAll('.nav-item')[idx].classList.add('active');
-        document.getElementById('view-title').innerText = tipo === 'reciente' ? "Reciente" : "Materias";
         document.getElementById('add-btn').style.display = tipo === 'materias' ? 'block' : 'none';
         renderizar();
     }
@@ -139,8 +131,7 @@
         const container = document.getElementById('content-list');
         container.innerHTML = "";
         if (seccionActual === 'reciente') {
-            if (db.recientes.length === 0) container.innerHTML = '<div style="text-align:center; margin-top:100px; color:gray;">No hay actividad reciente.</div>';
-            else db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
+            db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
         } else if (!materiaSeleccionada) {
             db.materias.forEach(m => container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`);
         } else {
@@ -149,26 +140,19 @@
         }
     }
 
-    function verTemasMateria(id) {
-        materiaSeleccionada = id;
-        const mat = db.materias.find(m => m.id == id);
-        document.getElementById('view-title').innerText = mat.nombre;
-        document.getElementById('breadcrumb').style.display = 'flex';
-        renderizar();
-    }
-
+    function verTemasMateria(id) { materiaSeleccionada = id; renderizar(); }
     function volverAMaterias() { materiaSeleccionada = null; cambiarSeccion('materias'); }
 
     function ejecutarAccionMas() {
-        const nom = prompt(materiaSeleccionada ? "Nombre del Tema:" : "Nombre de la Materia:");
+        const nom = prompt("Nombre:");
         if(nom) {
             if(!materiaSeleccionada) db.materias.push({ id: Date.now(), nombre: nom, temas: [] });
             else {
                 const mat = db.materias.find(m => m.id == materiaSeleccionada);
                 mat.temas.push(nom);
-                if(!db.recientes.find(r => r.titulo === nom)) db.recientes.push({ titulo: nom });
+                db.recientes.push({ titulo: nom });
             }
-            localStorage.setItem('mednotes_vFinal_db', JSON.stringify(db));
+            localStorage.setItem('mednotes_db', JSON.stringify(db));
             renderizar();
         }
     }
@@ -183,22 +167,24 @@
         document.getElementById('canvas-view').style.display = 'none';
     }
 
+    // --- LÓGICA DE NOTAS (SOLO CAMBIOS SOLICITADOS) ---
+
     function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; div.style.top = "150px";
-        div.innerHTML = `
-            <div class="handle">⠿ MOVER</div>
-            <textarea placeholder="Escribir..."></textarea>
-            <div class="resize-dot dot-br"></div>
-            <div class="resize-dot dot-tr"></div>
-            <div class="resize-dot dot-bl"></div>
-        `;
+        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea><div class="resize-dot dot-br"></div><div class="resize-dot dot-tr"></div><div class="resize-dot dot-bl"></div>`;
         
+        // Presión larga para seleccionar
         div.addEventListener('pointerdown', (e) => {
             e.stopPropagation();
-            if (div.classList.contains('selected')) return;
-            timerPresion = setTimeout(() => seleccionar(div), 800);
+            timerPresion = setTimeout(() => {
+                deseleccionar();
+                notaActiva = div;
+                div.classList.add('selected');
+                document.getElementById('delete-tool').classList.add('enabled');
+                interact(div).resizable({ enabled: true });
+            }, 800);
         });
 
         div.addEventListener('pointerup', () => clearTimeout(timerPresion));
@@ -206,14 +192,6 @@
 
         document.getElementById('canvas-bg').appendChild(div);
         configurarInteract(div);
-    }
-
-    function seleccionar(el) {
-        deseleccionar();
-        notaActiva = el;
-        el.classList.add('selected');
-        document.getElementById('delete-tool').classList.add('enabled');
-        interact(el).resizable({ enabled: true });
     }
 
     function deseleccionar() {
@@ -225,16 +203,10 @@
         document.getElementById('delete-tool').classList.remove('enabled');
     }
 
-    function eliminarNota() {
-        if (notaActiva) {
-            notaActiva.remove();
-            deseleccionar();
-        }
-    }
+    function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionar(); } }
 
     function configurarInteract(el) {
-        interact(el)
-        .draggable({
+        interact(el).draggable({
             allowFrom: '.handle',
             listeners: { move(event) {
                 const t = event.target;
@@ -243,8 +215,7 @@
                 t.style.transform = `translate(${x}px, ${y}px)`;
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
             }}
-        })
-        .resizable({
+        }).resizable({
             enabled: false,
             edges: { right: true, bottom: true, top: true },
             listeners: { move(event) {
@@ -256,13 +227,12 @@
                 x += event.deltaRect.left; y += event.deltaRect.top;
                 t.style.transform = `translate(${x}px, ${y}px)`;
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }},
-            modifiers: [ interact.modifiers.restrictSize({ min: { width: 160, height: 100 } }) ]
+            }}
         });
     }
 
     interact('#canvas-view').draggable({ listeners: { move(event) {
-        if (notaActiva) return; // No mover el lienzo si hay una nota activa
+        if (notaActiva) return;
         const bg = document.getElementById('canvas-bg');
         const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
         const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
