@@ -56,14 +56,22 @@
         .divider { width: 1px; height: 25px; background: #30363d; }
 
         /* NOTAS */
-        .nota { position: absolute; background: white; border-radius: 12px; width: 250px; min-height: 120px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; display: flex; flex-direction: column; overflow: visible; border: 2px solid transparent; touch-action: none; }
+        .nota { 
+            position: absolute; background: white; border-radius: 12px; 
+            width: 250px; min-height: 120px; color: #111; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10;
+            display: flex; flex-direction: column; overflow: visible;
+            border: 2px solid transparent; touch-action: none;
+        }
         .nota.selected { border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
         
-        .resize-dot { position: absolute; width: 12px; height: 12px; background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; }
+        .resize-dot {
+            position: absolute; width: 14px; height: 14px;
+            background: var(--accent-blue); border: 2px solid white;
+            border-radius: 50%; display: none; z-index: 100;
+        }
         .nota.selected .resize-dot { display: block; }
-        .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
-        .dot-tr { top: -8px; right: -8px; cursor: nesw-resize; }
-        .dot-bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
+        .dot-br { bottom: -7px; right: -7px; cursor: nwse-resize; }
 
         .handle { background: #f5f5f5; height: 35px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
         textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; }
@@ -104,14 +112,13 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('mednotes_vUCV')) || { materias: [], recientes: [] };
+    let db = JSON.parse(localStorage.getItem('mednotes_vUCV_final')) || { materias: [], recientes: [] };
     let seccionActual = 'reciente'; 
     let materiaSeleccionada = null; 
     let notaActiva = null;
     let timerPresion;
     let zIndexGlobal = 100;
 
-    // --- NAVEGACIÓN Y MATERIAS ---
     function cambiarSeccion(tipo) {
         seccionActual = tipo; materiaSeleccionada = null;
         document.getElementById('breadcrumb').style.display = 'none';
@@ -127,8 +134,7 @@
         const container = document.getElementById('content-list');
         container.innerHTML = "";
         if (seccionActual === 'reciente') {
-            if (db.recientes.length === 0) container.innerHTML = '<div style="text-align:center; margin-top:100px; color:gray;">No hay actividad reciente.</div>';
-            else db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
+            db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
         } else if (!materiaSeleccionada) {
             db.materias.forEach(m => container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`);
         } else {
@@ -137,14 +143,7 @@
         }
     }
 
-    function verTemasMateria(id) {
-        materiaSeleccionada = id;
-        const mat = db.materias.find(m => m.id == id);
-        document.getElementById('view-title').innerText = mat.nombre;
-        document.getElementById('breadcrumb').style.display = 'flex';
-        renderizar();
-    }
-
+    function verTemasMateria(id) { materiaSeleccionada = id; const mat = db.materias.find(m => m.id == id); document.getElementById('view-title').innerText = mat.nombre; document.getElementById('breadcrumb').style.display = 'flex'; renderizar(); }
     function volverAMaterias() { materiaSeleccionada = null; cambiarSeccion('materias'); }
 
     function ejecutarAccionMas() {
@@ -154,37 +153,37 @@
             else {
                 const mat = db.materias.find(m => m.id == materiaSeleccionada);
                 mat.temas.push(nom);
-                if(!db.recientes.find(r => r.titulo === nom)) db.recientes.push({ titulo: nom });
+                db.recientes.push({ titulo: nom });
             }
-            localStorage.setItem('mednotes_vUCV', JSON.stringify(db));
+            localStorage.setItem('mednotes_vUCV_final', JSON.stringify(db));
             renderizar();
         }
     }
 
-    function abrirLienzo() {
-        document.getElementById('main-view').style.display = 'none';
-        document.getElementById('canvas-view').style.display = 'block';
-    }
+    function abrirLienzo() { document.getElementById('main-view').style.display = 'none'; document.getElementById('canvas-view').style.display = 'block'; }
+    function cerrarLienzo() { document.getElementById('main-view').style.display = 'block'; document.getElementById('canvas-view').style.display = 'none'; }
 
-    function cerrarLienzo() {
-        document.getElementById('main-view').style.display = 'block';
-        document.getElementById('canvas-view').style.display = 'none';
-    }
+    // --- LÓGICA DE NOTAS ---
 
-    // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
     function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; div.style.top = "150px";
-        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea><div class="resize-dot dot-br"></div><div class="resize-dot dot-tr"></div><div class="resize-dot dot-bl"></div>`;
+        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea><div class="resize-dot dot-br"></div>`;
         
         div.addEventListener('pointerdown', (e) => {
             e.stopPropagation();
             div.style.zIndex = ++zIndexGlobal;
             if (!div.classList.contains('selected')) {
-                timerPresion = setTimeout(() => activarEdicion(div), 800);
+                timerPresion = setTimeout(() => {
+                    deseleccionarTodo();
+                    notaActiva = div;
+                    div.classList.add('selected');
+                    document.getElementById('delete-tool').classList.add('enabled');
+                }, 800);
             }
         });
+
         div.addEventListener('pointerup', () => clearTimeout(timerPresion));
         div.addEventListener('pointermove', () => clearTimeout(timerPresion));
 
@@ -192,18 +191,9 @@
         configurarInteract(div);
     }
 
-    function activarEdicion(el) {
-        deseleccionarTodo();
-        notaActiva = el;
-        el.classList.add('selected');
-        document.getElementById('delete-tool').classList.add('enabled');
-        interact(el).resizable({ enabled: true });
-    }
-
     function deseleccionarTodo() {
         if (notaActiva) {
             notaActiva.classList.remove('selected');
-            interact(notaActiva).resizable({ enabled: false });
             notaActiva = null;
         }
         document.getElementById('delete-tool').classList.remove('enabled');
@@ -212,39 +202,40 @@
     function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
 
     function configurarInteract(el) {
-        interact(el).draggable({
+        interact(el)
+        .draggable({
             allowFrom: '.handle',
-            listeners: { move(event) {
+            onmove(event) {
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
                 const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
                 t.style.transform = `translate(${x}px, ${y}px)`;
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }}
-        }).resizable({
-            enabled: false,
-            edges: { right: true, bottom: true, top: true },
-            listeners: { move(event) {
+            }
+        })
+        .resizable({
+            edges: { right: true, bottom: true },
+            onmove(event) {
+                // Solo redimensiona si está seleccionada
+                if(!event.target.classList.contains('selected')) return;
                 const t = event.target;
-                let x = (parseFloat(t.getAttribute('data-x')) || 0);
-                let y = (parseFloat(t.getAttribute('data-y')) || 0);
-                t.style.width = event.rect.width + 'px'; t.style.height = event.rect.height + 'px';
-                x += event.deltaRect.left; y += event.deltaRect.top;
-                t.style.transform = `translate(${x}px, ${y}px)`;
-                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }},
-            modifiers: [ interact.modifiers.restrictSize({ min: { width: 160, height: 100 } }) ]
+                t.style.width = event.rect.width + 'px';
+                t.style.height = event.rect.height + 'px';
+            }
         });
     }
 
-    interact('#canvas-view').draggable({ listeners: { move(event) {
-        if (notaActiva) return;
-        const bg = document.getElementById('canvas-bg');
-        const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
-        const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
-        bg.style.transform = `translate(${x}px, ${y}px)`;
-        bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
-    }}});
+    // Paneo lienzo
+    interact('#canvas-view').draggable({
+        onmove(event) {
+            if (notaActiva) return;
+            const bg = document.getElementById('canvas-bg');
+            const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
+            bg.style.transform = `translate(${x}px, ${y}px)`;
+            bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
+        }
+    });
 
     window.onload = () => renderizar();
 </script>
