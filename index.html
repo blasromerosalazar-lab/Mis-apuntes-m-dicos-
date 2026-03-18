@@ -51,7 +51,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .tool-btn.active { color: var(--accent-blue); }
-        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; }
+        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
         .tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
         .divider { width: 1px; height: 25px; background: #30363d; }
 
@@ -63,25 +63,23 @@
             display: flex; flex-direction: column; overflow: visible;
             border: 2px solid transparent; touch-action: none;
         }
-        .nota.selected { border: 2px solid var(--accent-blue); }
+        .nota.selected { border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
         
         .resize-dot {
-            position: absolute; width: 10px; height: 10px;
+            position: absolute; width: 12px; height: 12px;
             background: var(--accent-blue); border: 2px solid white;
             border-radius: 50%; display: none; z-index: 100;
         }
         .nota.selected .resize-dot { display: block; }
-        .dot-br { bottom: -6px; right: -6px; }
-        .dot-tr { top: -6px; right: -6px; }
-        .dot-bl { bottom: -6px; left: -6px; }
+        .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
+        .dot-tr { top: -8px; right: -8px; cursor: nesw-resize; }
+        .dot-bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
 
-        .handle { background: #f5f5f5; height: 30px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; }
+        .handle { background: #f5f5f5; height: 35px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
         textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; }
 
         #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; }
         #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; }
-        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); flex: 1; }
-        .nav-item.active { color: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -100,8 +98,8 @@
 </div>
 
 <div id="canvas-view">
-    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px;">← Salir</button>
-    <div id="canvas-bg" data-x="0" data-y="0" onclick="deseleccionar()"></div>
+    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
+    <div id="canvas-bg" data-x="0" data-y="0" onclick="deseleccionarTodo()"></div>
     <div class="floating-tools">
         <button class="tool-btn">⛶</button><button class="tool-btn">⚙</button>
         <div class="divider"></div>
@@ -114,77 +112,48 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('mednotes_db')) || { materias: [], recientes: [] };
-    let seccionActual = 'reciente'; 
-    let materiaSeleccionada = null; 
+    let db = JSON.parse(localStorage.getItem('mednotes_db_v6')) || { materias: [], recientes: [] };
     let notaActiva = null;
     let timerPresion;
+    let zIndexGlobal = 100;
 
+    // --- Navegación ---
     function cambiarSeccion(tipo) {
-        seccionActual = tipo; materiaSeleccionada = null;
-        document.getElementById('breadcrumb').style.display = 'none';
         document.getElementById('add-btn').style.display = tipo === 'materias' ? 'block' : 'none';
         renderizar();
     }
-
     function renderizar() {
         const container = document.getElementById('content-list');
         container.innerHTML = "";
-        if (seccionActual === 'reciente') {
-            db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
-        } else if (!materiaSeleccionada) {
-            db.materias.forEach(m => container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`);
-        } else {
-            const mat = db.materias.find(m => m.id == materiaSeleccionada);
-            mat.temas.forEach(t => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${t}</h3><span>📄</span></div>`);
-        }
+        db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
     }
+    function abrirLienzo() { document.getElementById('main-view').style.display = 'none'; document.getElementById('canvas-view').style.display = 'block'; }
+    function cerrarLienzo() { document.getElementById('main-view').style.display = 'block'; document.getElementById('canvas-view').style.display = 'none'; }
 
-    function verTemasMateria(id) { materiaSeleccionada = id; renderizar(); }
-    function volverAMaterias() { materiaSeleccionada = null; cambiarSeccion('materias'); }
-
-    function ejecutarAccionMas() {
-        const nom = prompt("Nombre:");
-        if(nom) {
-            if(!materiaSeleccionada) db.materias.push({ id: Date.now(), nombre: nom, temas: [] });
-            else {
-                const mat = db.materias.find(m => m.id == materiaSeleccionada);
-                mat.temas.push(nom);
-                db.recientes.push({ titulo: nom });
-            }
-            localStorage.setItem('mednotes_db', JSON.stringify(db));
-            renderizar();
-        }
-    }
-
-    function abrirLienzo() {
-        document.getElementById('main-view').style.display = 'none';
-        document.getElementById('canvas-view').style.display = 'block';
-    }
-
-    function cerrarLienzo() {
-        document.getElementById('main-view').style.display = 'block';
-        document.getElementById('canvas-view').style.display = 'none';
-    }
-
-    // --- LÓGICA DE NOTAS (SOLO CAMBIOS SOLICITADOS) ---
-
+    // --- Lógica de Notas ---
     function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; div.style.top = "150px";
-        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea><div class="resize-dot dot-br"></div><div class="resize-dot dot-tr"></div><div class="resize-dot dot-bl"></div>`;
+        div.innerHTML = `
+            <div class="handle">⠿ MOVER</div>
+            <textarea placeholder="Escribir..."></textarea>
+            <div class="resize-dot dot-br"></div>
+            <div class="resize-dot dot-tr"></div>
+            <div class="resize-dot dot-bl"></div>
+        `;
         
-        // Presión larga para seleccionar
+        // GESTIÓN DE SELECCIÓN Y PRESIÓN LARGA
         div.addEventListener('pointerdown', (e) => {
             e.stopPropagation();
-            timerPresion = setTimeout(() => {
-                deseleccionar();
-                notaActiva = div;
-                div.classList.add('selected');
-                document.getElementById('delete-tool').classList.add('enabled');
-                interact(div).resizable({ enabled: true });
-            }, 800);
+            div.style.zIndex = ++zIndexGlobal; // Siempre al frente al tocar
+
+            // Si no está seleccionada, iniciamos timer para Long Press
+            if (!div.classList.contains('selected')) {
+                timerPresion = setTimeout(() => {
+                    activarEdicion(div);
+                }, 800);
+            }
         });
 
         div.addEventListener('pointerup', () => clearTimeout(timerPresion));
@@ -194,7 +163,17 @@
         configurarInteract(div);
     }
 
-    function deseleccionar() {
+    function activarEdicion(el) {
+        deseleccionarTodo();
+        notaActiva = el;
+        el.classList.add('selected');
+        document.getElementById('delete-tool').classList.add('enabled');
+        // Habilitar resize de interactjs
+        const instance = interact(el);
+        instance.resizable({ enabled: true });
+    }
+
+    function deseleccionarTodo() {
         if (notaActiva) {
             notaActiva.classList.remove('selected');
             interact(notaActiva).resizable({ enabled: false });
@@ -203,10 +182,11 @@
         document.getElementById('delete-tool').classList.remove('enabled');
     }
 
-    function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionar(); } }
+    function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
 
     function configurarInteract(el) {
-        interact(el).draggable({
+        interact(el)
+        .draggable({
             allowFrom: '.handle',
             listeners: { move(event) {
                 const t = event.target;
@@ -215,8 +195,9 @@
                 t.style.transform = `translate(${x}px, ${y}px)`;
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
             }}
-        }).resizable({
-            enabled: false,
+        })
+        .resizable({
+            enabled: false, // Por defecto apagado hasta el Long Press
             edges: { right: true, bottom: true, top: true },
             listeners: { move(event) {
                 const t = event.target;
@@ -227,10 +208,12 @@
                 x += event.deltaRect.left; y += event.deltaRect.top;
                 t.style.transform = `translate(${x}px, ${y}px)`;
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }}
+            }},
+            modifiers: [ interact.modifiers.restrictSize({ min: { width: 160, height: 100 } }) ]
         });
     }
 
+    // Paneo del lienzo
     interact('#canvas-view').draggable({ listeners: { move(event) {
         if (notaActiva) return;
         const bg = document.getElementById('canvas-bg');
@@ -240,7 +223,7 @@
         bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
     }}});
 
-    window.onload = () => cambiarSeccion('reciente');
+    window.onload = () => renderizar();
 </script>
 </body>
 </html>
