@@ -133,7 +133,7 @@ textarea {
     background: transparent; 
 }
 
-#add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; cursor: pointer; z-index: 1001; }
+#add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: block; cursor: pointer; z-index: 1001; }
 
 #bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; }
 
@@ -153,7 +153,7 @@ textarea {
 <div id="canvas-view">
     <button onclick="cerrarLienzo()">← Salir</button>
     <div id="canvas-bg"></div>
-    <button onclick="crearNotaLienzo()">+</button>
+    <button id="add-btn" onclick="crearNotaLienzo()">+</button>
 </div>
 
 <script>
@@ -192,15 +192,10 @@ function crearNotaLienzo() {
     <div class="resize-dot dot-l"></div>
     <div class="resize-dot dot-t"></div>
     <div class="resize-dot dot-b"></div>
-    <div class="resize-dot dot-tl"></div>
-
-    <div class="resize-dot dot-r"></div>
-    <div class="resize-dot dot-l"></div>
-    <div class="resize-dot dot-t"></div>
-    <div class="resize-dot dot-b"></div>
     `;
 
     div.addEventListener('pointerdown', (e) => {
+        div.addEventListener('click', () => activarEdicion(div));
         e.stopPropagation();
         div.style.zIndex = ++zIndexGlobal;
 
@@ -269,7 +264,12 @@ function configurarInteract(el) {
         ]
     });
 }
-
+document.getElementById('canvas-bg').addEventListener('pointerdown', () => {
+    if (notaActiva) {
+        notaActiva.classList.remove('selected');
+        notaActiva = null;
+    }
+});
 </script>
 
 </body>
