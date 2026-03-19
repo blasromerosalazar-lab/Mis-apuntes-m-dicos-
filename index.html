@@ -1,276 +1,253 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MedNotes Pro - UCV</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MedNotes Pro - UCV</title>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        :root { 
+            --bg-dark: #0b0e14; 
+            --card-dark: #161b22;
+            --accent-blue: #3498db;
+            --text-gray: #8b949e;
+            --ui-glass: rgba(22, 27, 34, 0.95);
+        }
+        
+        body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+        /* VISTAS */
+        #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
+        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
 
-<style>
-:root { 
-    --bg-dark: #0b0e14; 
-    --card-dark: #161b22;
-    --accent-blue: #3498db;
-    --text-gray: #8b949e;
-    --ui-glass: rgba(22, 27, 34, 0.95);
-}
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .back-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-blue); margin-bottom: 20px; font-weight: bold; }
+        
+        /* TARJETAS */
+        .card { 
+            background: var(--card-dark); border-radius: 12px; padding: 20px; 
+            margin-bottom: 15px; border: 1px solid #30363d; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
 
-body { margin: 0; background-color: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        /* LIENZO PUNTEADO 40PX */
+        #canvas-bg {
+            width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
+            background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
+            background-size: 40px 40px;
+        }
 
-#main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
-#canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
+        /* BARRA DE HERRAMIENTAS */
+        .floating-tools {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: var(--ui-glass); backdrop-filter: blur(10px);
+            padding: 10px 20px; border-radius: 20px; border: 1px solid #30363d;
+            display: flex; gap: 12px; align-items: center; z-index: 2000;
+        }
+        .tool-btn {
+            width: 44px; height: 44px; border-radius: 12px; border: none;
+            background: transparent; color: #8b949e; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .tool-btn.active { color: var(--accent-blue); }
+        .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
+        .tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
+        .divider { width: 1px; height: 25px; background: #30363d; }
 
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.back-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-blue); margin-bottom: 20px; font-weight: bold; }
+        /* NOTAS */
+        .nota { position: absolute; background: white; border-radius: 12px; width: 250px; min-height: 120px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; display: flex; flex-direction: column; overflow: visible; border: 2px solid transparent; touch-action: none; }
+        .nota.selected { border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
+        
+        .resize-dot { position: absolute; width: 12px; height: 12px; background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; }
+        .nota.selected .resize-dot { display: block; }
+        .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
+        .dot-tr { top: -8px; right: -8px; cursor: nesw-resize; }
+        .dot-bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
 
-.card { 
-    background: var(--card-dark); border-radius: 12px; padding: 20px; 
-    margin-bottom: 15px; border: 1px solid #30363d; cursor: pointer;
-    display: flex; justify-content: space-between; align-items: center;
-}
+        .handle { background: #f5f5f5; height: 35px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; }
 
-.card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
-
-#canvas-bg {
-    width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
-    background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
-    background-size: 40px 40px;
-}
-
-.floating-tools {
-    position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-    background: var(--ui-glass); backdrop-filter: blur(10px);
-    padding: 10px 20px; border-radius: 20px; border: 1px solid #30363d;
-    display: flex; gap: 12px; align-items: center; z-index: 2000;
-}
-
-.tool-btn {
-    width: 44px; height: 44px; border-radius: 12px; border: none;
-    background: transparent; color: #8b949e; cursor: pointer; font-size: 20px;
-    display: flex; align-items: center; justify-content: center;
-}
-
-.tool-btn.active { color: var(--accent-blue); }
-.tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
-.tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
-
-.divider { width: 1px; height: 25px; background: #30363d; }
-
-/* NOTAS */
-.nota { 
-    position: absolute; 
-    background: white; 
-    border-radius: 12px; 
-    width: 250px; 
-    min-height: 120px; 
-    color: #111; 
-    box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
-    z-index: 10; 
-    display: flex; 
-    flex-direction: column; 
-    overflow: visible; 
-    border: 2px solid transparent; 
-    touch-action: none; 
-}
-
-/* SELECCIÓN PRO */
-.nota.selected { 
-    border: 2px solid #4da6ff;
-    box-shadow: 
-        0 0 0 2px rgba(77,166,255,0.3),
-        0 0 20px rgba(77,166,255,0.6),
-        0 15px 40px rgba(0,0,0,0.5);
-}
-
-/* DOTS */
-.resize-dot { 
-    position: absolute; 
-    width: 12px; 
-    height: 12px; 
-    background: #4da6ff; 
-    border: 2px solid white; 
-    border-radius: 50%; 
-    display: none; 
-    z-index: 100;
-}
-
-.nota.selected .resize-dot { display: block; }
-
-/* ESQUINAS */
-.dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
-.dot-tr { top: -8px; right: -8px; cursor: nesw-resize; }
-.dot-bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
-.dot-tl { top: -8px; left: -8px; cursor: nwse-resize; }
-
-/* LADOS */
-.dot-r { right: -8px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
-.dot-l { left: -8px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
-.dot-t { top: -8px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
-.dot-b { bottom: -8px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
-
-.handle { 
-    background: #f5f5f5; 
-    height: 35px; 
-    cursor: grab; 
-    border-radius: 12px 12px 0 0; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 10px; 
-    font-weight: bold; 
-    color: #999; 
-    border-bottom: 1px solid #ddd; 
-}
-
-textarea { 
-    width: 100%; 
-    flex-grow: 1; 
-    border: none; 
-    padding: 12px; 
-    resize: none; 
-    outline: none; 
-    background: transparent; 
-}
-
-#add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: block; cursor: pointer; z-index: 1001; }
-
-#bottom-nav { position: fixed; bottom: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; }
-
-.nav-item { text-align: center; font-size: 11px; color: var(--text-gray); flex: 1; }
-.nav-item.active { color: var(--accent-blue); }
-
-</style>
+        #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; cursor: pointer; z-index: 1001; }
+        #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000; }
+        .nav-item { text-align: center; font-size: 11px; color: var(--text-gray); cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--accent-blue); }
+    </style>
 </head>
-
 <body>
 
 <div id="main-view">
-    <div class="header"><h1>Reciente</h1></div>
-    <button onclick="abrirLienzo()">Abrir lienzo</button>
+    <div id="breadcrumb" class="back-nav" style="display:none;" onclick="volverAMaterias()"><span>← Materias</span></div>
+    <div class="header"><h1 id="view-title">Reciente</h1><div style="font-size: 22px;">🔍</div></div>
+    <div id="content-list"></div>
+    <button id="add-btn" onclick="ejecutarAccionMas()">+</button>
+    <div id="bottom-nav">
+        <div class="nav-item active" onclick="cambiarSeccion('reciente')">🏠<br>Reciente</div>
+        <div class="nav-item" onclick="cambiarSeccion('materias')">📚<br>Materias</div>
+        <div class="nav-item">📦<br>3D</div>
+        <div class="nav-item">👤<br>Yo</div>
+    </div>
 </div>
 
 <div id="canvas-view">
-    <button onclick="cerrarLienzo()">← Salir</button>
-    <div id="canvas-bg"></div>
-    <button id="add-btn" onclick="crearNotaLienzo()">+</button>
+    <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
+    <div id="canvas-bg" data-x="0" data-y="0" onclick="deseleccionarTodo()"></div>
+    <div class="floating-tools">
+        <button class="tool-btn">⛶</button><button class="tool-btn">⚙</button>
+        <div class="divider"></div>
+        <button class="tool-btn">✎</button>
+        <button class="tool-btn active" onclick="crearNotaLienzo()">T</button>
+        <button id="delete-tool" class="tool-btn danger" onclick="eliminarNota()">🗑️</button>
+        <div class="divider"></div>
+        <button class="tool-btn" onclick="cerrarLienzo()">🏠</button>
+    </div>
 </div>
 
 <script>
+    let db = JSON.parse(localStorage.getItem('mednotes_vUCV')) || { materias: [], recientes: [] };
+    let seccionActual = 'reciente'; 
+    let materiaSeleccionada = null; 
+    let notaActiva = null;
+    let timerPresion;
+    let zIndexGlobal = 100;
 
-let notaActiva = null;
-let timerPresion;
-let zIndexGlobal = 100;
+    // --- NAVEGACIÓN Y MATERIAS ---
+    function cambiarSeccion(tipo) {
+        seccionActual = tipo; materiaSeleccionada = null;
+        document.getElementById('breadcrumb').style.display = 'none';
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        const idx = tipo === 'reciente' ? 0 : 1;
+        document.querySelectorAll('.nav-item')[idx].classList.add('active');
+        document.getElementById('view-title').innerText = tipo === 'reciente' ? "Reciente" : "Materias";
+        document.getElementById('add-btn').style.display = tipo === 'materias' ? 'block' : 'none';
+        renderizar();
+    }
 
-function abrirLienzo() {
-    document.getElementById('main-view').style.display = 'none';
-    document.getElementById('canvas-view').style.display = 'block';
-}
+    function renderizar() {
+        const container = document.getElementById('content-list');
+        container.innerHTML = "";
+        if (seccionActual === 'reciente') {
+            if (db.recientes.length === 0) container.innerHTML = '<div style="text-align:center; margin-top:100px; color:gray;">No hay actividad reciente.</div>';
+            else db.recientes.slice().reverse().forEach(r => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${r.titulo}</h3><span>📄</span></div>`);
+        } else if (!materiaSeleccionada) {
+            db.materias.forEach(m => container.innerHTML += `<div class="card" onclick="verTemasMateria('${m.id}')"><h3>${m.nombre}</h3><span>📁</span></div>`);
+        } else {
+            const mat = db.materias.find(m => m.id == materiaSeleccionada);
+            mat.temas.forEach(t => container.innerHTML += `<div class="card" onclick="abrirLienzo()"><h3>${t}</h3><span>📄</span></div>`);
+        }
+    }
 
-function cerrarLienzo() {
-    document.getElementById('main-view').style.display = 'block';
-    document.getElementById('canvas-view').style.display = 'none';
-}
+    function verTemasMateria(id) {
+        materiaSeleccionada = id;
+        const mat = db.materias.find(m => m.id == id);
+        document.getElementById('view-title').innerText = mat.nombre;
+        document.getElementById('breadcrumb').style.display = 'flex';
+        renderizar();
+    }
 
-function crearNotaLienzo() {
+    function volverAMaterias() { materiaSeleccionada = null; cambiarSeccion('materias'); }
 
-    const div = document.createElement('div');
-    div.className = 'nota';
-    div.style.left = "150px";
-    div.style.top = "150px";
+    function ejecutarAccionMas() {
+        const nom = prompt(materiaSeleccionada ? "Nombre del Tema:" : "Nombre de la Materia:");
+        if(nom) {
+            if(!materiaSeleccionada) db.materias.push({ id: Date.now(), nombre: nom, temas: [] });
+            else {
+                const mat = db.materias.find(m => m.id == materiaSeleccionada);
+                mat.temas.push(nom);
+                if(!db.recientes.find(r => r.titulo === nom)) db.recientes.push({ titulo: nom });
+            }
+            localStorage.setItem('mednotes_vUCV', JSON.stringify(db));
+            renderizar();
+        }
+    }
 
-    div.innerHTML = `
-    <div class="handle">⠿ MOVER</div>
-    <textarea placeholder="Escribir..."></textarea>
+    function abrirLienzo() {
+        document.getElementById('main-view').style.display = 'none';
+        document.getElementById('canvas-view').style.display = 'block';
+    }
 
-    <div class="resize-dot dot-br"></div>
-    <div class="resize-dot dot-tr"></div>
-    <div class="resize-dot dot-bl"></div>
-    <div class="resize-dot dot-tl"></div>
+    function cerrarLienzo() {
+        document.getElementById('main-view').style.display = 'block';
+        document.getElementById('canvas-view').style.display = 'none';
+    }
 
-    <div class="resize-dot dot-r"></div>
-    <div class="resize-dot dot-l"></div>
-    <div class="resize-dot dot-t"></div>
-    <div class="resize-dot dot-b"></div>
-    `;
+    // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
+    function crearNotaLienzo() {
+        const div = document.createElement('div');
+        div.className = 'nota';
+        div.style.left = "150px"; div.style.top = "150px";
+        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea><div class="resize-dot dot-br"></div><div class="resize-dot dot-tr"></div><div class="resize-dot dot-bl"></div>`;
+        
+        div.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            div.style.zIndex = ++zIndexGlobal;
+            if (!div.classList.contains('selected')) {
+                timerPresion = setTimeout(() => activarEdicion(div), 800);
+            }
+        });
+        div.addEventListener('pointerup', () => clearTimeout(timerPresion));
+        div.addEventListener('pointermove', () => clearTimeout(timerPresion));
 
-    div.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-        div.style.zIndex = ++zIndexGlobal;
+        document.getElementById('canvas-bg').appendChild(div);
+        configurarInteract(div);
+    }
 
-        timerPresion = setTimeout(() => {
-            activarEdicion(div);
-        }, 500);
-    });
-    div.addEventListener('click', () => activarEdicion(div));
+    function activarEdicion(el) {
+        deseleccionarTodo();
+        notaActiva = el;
+        el.classList.add('selected');
+        document.getElementById('delete-tool').classList.add('enabled');
+        interact(el).resizable({ enabled: true });
+    }
 
-    div.addEventListener('pointerup', () => clearTimeout(timerPresion));
-    div.addEventListener('pointermove', () => clearTimeout(timerPresion));
+    function deseleccionarTodo() {
+        if (notaActiva) {
+            notaActiva.classList.remove('selected');
+            interact(notaActiva).resizable({ enabled: false });
+            notaActiva = null;
+        }
+        document.getElementById('delete-tool').classList.remove('enabled');
+    }
 
-    document.getElementById('canvas-bg').appendChild(div);
-    configurarInteract(div);
-}
+    function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
 
-function activarEdicion(el) {
-    if (notaActiva) notaActiva.classList.remove('selected');
-    notaActiva = el;
-    el.classList.add('selected');
-}
-
-function configurarInteract(el) {
-
-    interact(el).draggable({
-        allowFrom: '.handle',
-        listeners: {
-            move(event) {
+    function configurarInteract(el) {
+        interact(el).draggable({
+            allowFrom: '.handle',
+            listeners: { move(event) {
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
                 const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-
                 t.style.transform = `translate(${x}px, ${y}px)`;
-                t.setAttribute('data-x', x);
-                t.setAttribute('data-y', y);
-            }
-        }
-    });
-
-    interact(el).resizable({
-        edges: { top: true, left: true, bottom: true, right: true },
-
-        listeners: {
-            move(event) {
+                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+            }}
+        }).resizable({
+            enabled: false,
+            edges: { right: true, bottom: true, top: true },
+            listeners: { move(event) {
                 const t = event.target;
-
                 let x = (parseFloat(t.getAttribute('data-x')) || 0);
                 let y = (parseFloat(t.getAttribute('data-y')) || 0);
-
-                t.style.width = event.rect.width + 'px';
-                t.style.height = event.rect.height + 'px';
-
-                x += event.deltaRect.left;
-                y += event.deltaRect.top;
-
+                t.style.width = event.rect.width + 'px'; t.style.height = event.rect.height + 'px';
+                x += event.deltaRect.left; y += event.deltaRect.top;
                 t.style.transform = `translate(${x}px, ${y}px)`;
-
-                t.setAttribute('data-x', x);
-                t.setAttribute('data-y', y);
-            }
-        },
-
-        modifiers: [
-            interact.modifiers.restrictSize({
-                min: { width: 160, height: 100 }
-            })
-        ]
-    });
-}
-document.getElementById('canvas-bg').addEventListener('pointerdown', () => {
-    if (notaActiva) {
-        notaActiva.classList.remove('selected');
-        notaActiva = null;
+                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+            }},
+            modifiers: [ interact.modifiers.restrictSize({ min: { width: 160, height: 100 } }) ]
+        });
     }
-});
-</script>
 
+    interact('#canvas-view').draggable({ listeners: { move(event) {
+        if (notaActiva) return;
+        const bg = document.getElementById('canvas-bg');
+        const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
+        bg.style.transform = `translate(${x}px, ${y}px)`;
+        bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
+    }}});
+
+    window.onload = () => renderizar();
+</script>
 </body>
 </html>
+​
