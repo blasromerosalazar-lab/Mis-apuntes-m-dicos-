@@ -76,6 +76,7 @@
     display: none;
     z-index: 100;
     box-shadow: 0 0 10px rgba(52, 152, 219, 0.9);
+    pointer-events: all;
 }
         .nota.selected .resize-dot { display: block; }
         .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
@@ -206,7 +207,7 @@
         div.addEventListener('pointermove', () => clearTimeout(timerPresion));
 
         document.getElementById('canvas-bg').appendChild(div);
-        configurarInteract(div);
+        setTimeout(() => configurarInteract(div), 0);
     }
 
     function activarEdicion(el) {
@@ -231,6 +232,7 @@
     function configurarInteract(el) {
         interact(el).draggable({
     ignoreFrom: 'textarea',
+            inertia: true,
     listeners: { move(event) {
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
