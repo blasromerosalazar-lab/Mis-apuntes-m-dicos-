@@ -229,62 +229,23 @@
 
     function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
         
+window.onload = () => {
+    renderizar();
 
     interact('#canvas-view').draggable({ 
-    ignoreFrom: '.nota',
-    listeners: { move(event) {
-        if (notaActiva) return;
-        const bg = document.getElementById('canvas-bg');
-        const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
-        const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
-        bg.style.transform = `translate(${x}px, ${y}px)`;
-        bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
-    }}});
-interact('.nota')
-  .draggable({
-    ignoreFrom: 'textarea',
-    inertia: true,
-    listeners: {
-      move(event) {
-        const t = event.target;
-        const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-        const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+        ignoreFrom: '.nota',
+        listeners: { move(event) {
+            if (notaActiva) return;
 
-        t.style.transform = `translate(${x}px, ${y}px)`;
-        t.setAttribute('data-x', x);
-        t.setAttribute('data-y', y);
-      }
-    }
-  })
-  .resizable({
-    edges: { left: true, right: true, bottom: true, top: true },
-    listeners: {
-      move(event) {
-        const t = event.target;
+            const bg = document.getElementById('canvas-bg');
+            const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
 
-        let x = (parseFloat(t.getAttribute('data-x')) || 0);
-        let y = (parseFloat(t.getAttribute('data-y')) || 0);
-
-        t.style.width = event.rect.width + 'px';
-        t.style.height = event.rect.height + 'px';
-
-        x += event.deltaRect.left;
-        y += event.deltaRect.top;
-
-        t.style.transform = `translate(${x}px, ${y}px)`;
-
-        t.setAttribute('data-x', x);
-        t.setAttribute('data-y', y);
-      }
-    },
-    modifiers: [
-      interact.modifiers.restrictSize({
-        min: { width: 160, height: 100 }
-      })
-    ]
-  });
-    window.onload = () => renderizar();
-    renderizar();
+            bg.style.transform = `translate(${x}px, ${y}px)`;
+            bg.setAttribute('data-x', x);
+            bg.setAttribute('data-y', y);
+        }}
+    });
 
     interact('.nota')
       .draggable({
