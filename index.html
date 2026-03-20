@@ -261,7 +261,9 @@
         });
     }
 
-    interact('#canvas-view').draggable({ listeners: { move(event) {
+    interact('#canvas-view').draggable({ 
+    ignoreFrom: '.nota',
+    listeners: { move(event) {
         if (notaActiva) return;
         const bg = document.getElementById('canvas-bg');
         const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
