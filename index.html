@@ -57,9 +57,26 @@
 
         /* NOTAS */
         .nota { position: absolute; background: white; border-radius: 12px; width: 250px; min-height: 120px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; display: flex; flex-direction: column; overflow: visible; border: 2px solid transparent; touch-action: none; }
-        .nota.selected { border: 2px solid var(--accent-blue); box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
+         .nota.selected {
+    border: 2px solid var(--accent-blue);
+    box-shadow: 
+        0 0 0 2px rgba(52, 152, 219, 0.3),
+        0 0 20px rgba(52, 152, 219, 0.8),
+        0 0 40px rgba(52, 152, 219, 0.4);
+    transition: all 0.2s ease;
+         }
         
-        .resize-dot { position: absolute; width: 12px; height: 12px; background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; }
+         .resize-dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: var(--accent-blue);
+    border: 3px solid white;
+    border-radius: 50%;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.9);
+         }background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; }
         .nota.selected .resize-dot { display: block; }
         .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
         .dot-tr { top: -8px; right: -8px; cursor: nesw-resize; }
@@ -182,7 +199,7 @@
             e.stopPropagation();
             div.style.zIndex = ++zIndexGlobal;
             if (!div.classList.contains('selected')) {
-                timerPresion = setTimeout(() => activarEdicion(div), 800);
+                timerPresion = setTimeout(() => activarEdicion(div), 500);
             }
         });
         div.addEventListener('pointerup', () => clearTimeout(timerPresion));
@@ -213,7 +230,6 @@
 
     function configurarInteract(el) {
         interact(el).draggable({
-            allowFrom: '.handle',
             listeners: { move(event) {
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
