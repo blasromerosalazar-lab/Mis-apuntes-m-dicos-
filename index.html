@@ -215,7 +215,7 @@
         notaActiva = el;
         el.classList.add('selected');
         document.getElementById('delete-tool').classList.add('enabled');
-        interact(el).resizable({ enabled: true });
+        interact(el).resizable(true);
     }
 
     function deseleccionarTodo() {
@@ -243,10 +243,10 @@
         }).resizable({
             enabled: false,
             edges: {
-    right: '.dot-br',
-    bottom: '.dot-br',
-    top: '.dot-tr',
-    left: '.dot-bl'
+    right: true,
+    bottom: true,
+    top: true,
+    left: true
 },
             listeners: { move(event) {
                 const t = event.target;
