@@ -200,22 +200,22 @@
             e.stopPropagation();
             div.style.zIndex = ++zIndexGlobal;
             if (!div.classList.contains('selected')) {
-                timerPresion = setTimeout(() => activarEdicion(div), 500);
-            }
-        });
-        div.addEventListener('pointerup', () => clearTimeout(timerPresion));
-        div.addEventListener('pointermove', () => clearTimeout(timerPresion));
+                timerPresion =setTimeout(() => activarEdicion(div), 500);
+        }
+    });
 
-        document.getElementById('canvas-bg').appendChild(div);
-        setTimeout(() => configurarInteract(div), 0);
-    }
+    div.addEventListener('pointerup', () => clearTimeout(timerPresion));
+
+    // 👇 IMPORTANTE: elimina pointermove (rompía todo)
+
+    document.getElementById('canvas-bg').appendChild(div);
+}
 
     function activarEdicion(el) {
         deseleccionarTodo();
         notaActiva = el;
         el.classList.add('selected');
         document.getElementById('delete-tool').classList.add('enabled');
-        interact(el).resizable(true);
     }
 
     function deseleccionarTodo() {
@@ -228,18 +228,6 @@
     }
 
     function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
-
-    function configurarInteract(el) {
-        interact(el).draggable({
-    ignoreFrom: 'textarea',
-            inertia: true,
-    listeners: { move(event) {console.log("MOVIENDO");
-                const t = event.target;
-                const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                t.style.transform = `translate(${x}px, ${y}px)`;
-                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }}
         }).resizable({
             enabled: false,
             edges: {
@@ -271,7 +259,49 @@
         bg.style.transform = `translate(${x}px, ${y}px)`;
         bg.setAttribute('data-x', x); bg.setAttribute('data-y', y);
     }}});
+interact('.nota')
+  .draggable({
+    ignoreFrom: 'textarea',
+    inertia: true,
+    listeners: {
+      move(event) {
+        const t = event.target;
+        const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
 
+        t.style.transform = `translate(${x}px, ${y}px)`;
+        t.setAttribute('data-x', x);
+        t.setAttribute('data-y', y);
+      }
+    }
+  })
+  .resizable({
+    edges: { left: true, right: true, bottom: true, top: true },
+    listeners: {
+      move(event) {
+        const t = event.target;
+
+        let x = (parseFloat(t.getAttribute('data-x')) || 0);
+        let y = (parseFloat(t.getAttribute('data-y')) || 0);
+
+        t.style.width = event.rect.width + 'px';
+        t.style.height = event.rect.height + 'px';
+
+        x += event.deltaRect.left;
+        y += event.deltaRect.top;
+
+        t.style.transform = `translate(${x}px, ${y}px)`;
+
+        t.setAttribute('data-x', x);
+        t.setAttribute('data-y', y);
+      }
+    },
+    modifiers: [
+      interact.modifiers.restrictSize({
+        min: { width: 160, height: 100 }
+      })
+    ]
+  });
     window.onload = () => renderizar();
 </script>
 </body>
