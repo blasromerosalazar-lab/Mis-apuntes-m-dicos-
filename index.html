@@ -233,7 +233,7 @@
         interact(el).draggable({
     ignoreFrom: 'textarea',
             inertia: true,
-    listeners: { move(event) {
+    listeners: { move(event) {console.log("MOVIENDO");
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
                 const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
