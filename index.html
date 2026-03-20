@@ -191,8 +191,13 @@
 function aplicarInteract(el) {
     interact(el)
       .draggable({
-        ignoreFrom: 'textarea',
+        allowFrom: '.handle', // Solo arrastrable desde la barra superior
         inertia: true,
+        modifiers: [
+            interact.modifiers.restrict({
+                restriction: 'parent'
+            })
+        ],
         listeners: {
           move(event) {
             const t = event.target;
@@ -210,9 +215,8 @@ function aplicarInteract(el) {
         listeners: {
           move(event) {
             const t = event.target;
-
-            let x = (parseFloat(t.getAttribute('data-x')) || 0);
-            let y = (parseFloat(t.getAttribute('data-y')) || 0);
+            let x = parseFloat(t.getAttribute('data-x')) || 0;
+            let y = parseFloat(t.getAttribute('data-y')) || 0;
 
             t.style.width = event.rect.width + 'px';
             t.style.height = event.rect.height + 'px';
@@ -221,7 +225,6 @@ function aplicarInteract(el) {
             y += event.deltaRect.top;
 
             t.style.transform = `translate(${x}px, ${y}px)`;
-
             t.setAttribute('data-x', x);
             t.setAttribute('data-y', y);
           }
