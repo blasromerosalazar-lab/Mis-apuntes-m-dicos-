@@ -76,6 +76,8 @@
     display: none;
     z-index: 100;
     box-shadow: 0 0 10px rgba(52, 152, 219, 0.9);
+}
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.9);
          }background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; }
         .nota.selected .resize-dot { display: block; }
         .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
@@ -230,7 +232,8 @@
 
     function configurarInteract(el) {
         interact(el).draggable({
-            listeners: { move(event) {
+    ignoreFrom: 'textarea',
+    listeners: { move(event) {
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
                 const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
@@ -239,7 +242,12 @@
             }}
         }).resizable({
             enabled: false,
-            edges: { right: true, bottom: true, top: true },
+            edges: {
+    right: '.dot-br',
+    bottom: '.dot-br',
+    top: '.dot-tr',
+    left: '.dot-bl'
+},
             listeners: { move(event) {
                 const t = event.target;
                 let x = (parseFloat(t.getAttribute('data-x')) || 0);
