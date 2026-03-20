@@ -188,10 +188,7 @@
         document.getElementById('main-view').style.display = 'block';
         document.getElementById('canvas-view').style.display = 'none';
     }
-
-    // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
-    function crearNotaLienzo() {
-        function aplicarInteract(el) {
+function aplicarInteract(el) {
     interact(el)
       .draggable({
         ignoreFrom: 'textarea',
@@ -236,6 +233,9 @@
         ]
       });
 }
+    // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
+    function crearNotaLienzo() {
+        
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; div.style.top = "150px";
@@ -292,6 +292,7 @@ window.onload = () => {
             bg.setAttribute('data-y', y);
         }}
     });
+};
 
 </script>
 </body>
