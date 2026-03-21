@@ -126,7 +126,7 @@
     let seccionActual = 'reciente'; 
     let materiaSeleccionada = null; 
     let notaActiva = null;
-    let timerPresion;
+    let timerPresion; // <-- AÑADE ESTA LÍNEA
     let zIndexGlobal = 100;
 
     // --- NAVEGACIÓN Y MATERIAS ---
@@ -243,7 +243,8 @@ function aplicarInteract(el) {
 })
 
     // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
-            function crearNotaLienzo() {
+            
+    function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; 
@@ -259,6 +260,7 @@ function aplicarInteract(el) {
         
         div.addEventListener('pointerdown', (e) => {
             div.style.zIndex = ++zIndexGlobal;
+            // Si no está seleccionada, iniciamos el temporizador de 1 seg
             if (!div.classList.contains('selected')) {
                 timerPresion = setTimeout(() => {
                     activarEdicion(div);
@@ -266,6 +268,7 @@ function aplicarInteract(el) {
             }
         });
 
+        // Si mueves el dedo antes del segundo, se cancela el modo edición
         div.addEventListener('pointermove', () => {
             if (!div.classList.contains('selected')) {
                 clearTimeout(timerPresion);
