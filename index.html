@@ -127,7 +127,8 @@
     let materiaSeleccionada = null; 
     let notaActiva = null;
     let timerPresion; // <-- AÑADE ESTA LÍNEA
-    let zIndexGlobal = 100;
+    let zIndexGlobal = 100;localStorage.clear(); // Esto borrará los datos viejos que bloquean el botón
+
 
     // --- NAVEGACIÓN Y MATERIAS ---
     function cambiarSeccion(tipo) {
@@ -192,6 +193,13 @@ function aplicarInteract(el) {
     interact(el)
       .draggable({
         inertia: true,
+          allowFrom: '.handle', 
+        modifiers: [
+            interact.modifiers.restrictRect({
+                restriction: 'parent',
+                endOnly: true
+            })
+        ],
         modifiers: [
             interact.modifiers.restrictRect({
                 restriction: 'parent',
