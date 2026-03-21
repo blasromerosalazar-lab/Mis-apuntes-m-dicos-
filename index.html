@@ -283,11 +283,12 @@ function aplicarInteract(el) {
 
 
     function activarEdicion(el) {
-        deseleccionarTodo();
-        notaActiva = el;
-        el.classList.add('selected');
-        document.getElementById('delete-tool').classList.add('enabled');
-    }
+    deseleccionarTodo();
+    notaActiva = el;
+    el.classList.add('selected');
+    // Habilita el botón de borrar en la barra de herramientas
+    document.getElementById('delete-tool').classList.add('enabled');
+}
 
     function deseleccionarTodo() {
         if (notaActiva) {
