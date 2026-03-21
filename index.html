@@ -98,7 +98,7 @@
     <div id="breadcrumb" class="back-nav" style="display:none;" onclick="volverAMaterias()"><span>← Materias</span></div>
     <div class="header"><h1 id="view-title">Reciente</h1><div style="font-size: 22px;">🔍</div></div>
     <div id="content-list"></div>
-    <button id="add-btn" onclick="ejecutarAccionMas()">+</button>
+    <button id="add-btn" type="button" onclick="ejecutarAccionMas()">+</button>
     <div id="bottom-nav">
         <div class="nav-item active" onclick="cambiarSeccion('reciente')">🏠<br>Reciente</div>
         <div class="nav-item" onclick="cambiarSeccion('materias')">📚<br>Materias</div>
@@ -295,19 +295,19 @@ function aplicarInteract(el) {
         const delBtn = document.getElementById('delete-tool');
         if(delBtn) delBtn.classList.remove('enabled');
     }
-
     function eliminarNota() { 
         if (notaActiva) { 
             notaActiva.remove(); 
             deseleccionarTodo(); 
         } 
-    // --- INICIALIZACIÓN (ESTO ACTIVA EL BOTÓN Y LAS MATERIAS) ---
-    window.onload = () => {
-        renderizar(); // Esto dibuja las materias guardadas al cargar
+    } // <-- ESTA LLAVE FALTABA Y ROMPÍA TODO
 
-        // Esto permite que puedas arrastrar el fondo punteado de 5000px
+    // --- INICIALIZACIÓN ---
+    window.onload = () => {
+        renderizar(); 
+
         interact('#canvas-view').draggable({
-            ignoreFrom: '.nota',
+            ignoreFrom: '.nota, textarea, .handle',
             listeners: {
                 move(event) {
                     if (notaActiva) return;
@@ -321,8 +321,8 @@ function aplicarInteract(el) {
             }
         });
     };
-
 </script>
 </body>
 </html>
-​
+
+    ​
