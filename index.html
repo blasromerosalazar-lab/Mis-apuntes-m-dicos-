@@ -243,15 +243,14 @@ function aplicarInteract(el) {
 })
 
     // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
-    
-    function crearNotaLienzo() {
+        function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
-        div.style.left = "50px"; 
-        div.style.top = "50px";
+        div.style.left = "150px"; 
+        div.style.top = "150px";
         
         div.innerHTML = `
-            <div class="handle">⠿ MANTENER PARA EDITAR</div>
+            <div class="handle">⠿ MOVER (Mantener para editar)</div>
             <textarea placeholder="Escribir..."></textarea>
             <div class="resize-dot dot-br"></div>
             <div class="resize-dot dot-tr"></div>
@@ -261,22 +260,31 @@ function aplicarInteract(el) {
         div.addEventListener('pointerdown', (e) => {
             div.style.zIndex = ++zIndexGlobal;
             
+            // Si no está seleccionada, iniciamos el conteo
             if (!div.classList.contains('selected')) {
                 timerPresion = setTimeout(() => {
                     activarEdicion(div);
-                }, 1000); 
+                }, 1000); // 1 segundo estático para editar
             }
         });
 
-        div.addEventListener('pointermove', () => clearTimeout(timerPresion));
+        // Si el dedo se mueve aunque sea un poco, cancelamos el modo edición
+        // Esto permite que puedas mover la nota libremente sin que salga el borde
+        div.addEventListener('pointermove', (e) => {
+            // Solo cancelamos si no está ya en modo edición
+            if (!div.classList.contains('selected')) {
+                clearTimeout(timerPresion);
+            }
+        });
+
         div.addEventListener('pointerup', () => clearTimeout(timerPresion));
         div.addEventListener('pointerleave', () => clearTimeout(timerPresion));
 
         document.getElementById('canvas-bg').appendChild(div);
         aplicarInteract(div);
-    } // <-- Aquí faltaba esta llave de cierre
+    }
 
-
+    
     function activarEdicion(el) {
     deseleccionarTodo();
     notaActiva = el;
