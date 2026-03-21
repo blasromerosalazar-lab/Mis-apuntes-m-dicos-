@@ -27,8 +27,38 @@
         .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
         .tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
 
-        .nota { position: absolute; background: white; border-radius: 12px; width: 250px; min-height: 120px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; display: flex; flex-direction: column; border: 2px solid transparent; touch-action: none; }
+                .nota { 
+            position: absolute; 
+            background: white; 
+            border-radius: 12px; 
+            width: 250px; 
+            min-height: 120px; 
+            color: #111; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
+            z-index: 10; 
+            display: flex; 
+            flex-direction: column; 
+            border: 2px solid transparent; 
+            /* AJUSTES PARA FLUIDEZ EN TABLET */
+            touch-action: none; 
+            user-select: none;
+            will-change: transform;
+        }
         .nota.selected { border: 2px solid var(--accent-blue); }
+        
+        .handle { 
+            background: #f5f5f5; 
+            height: 45px; /* Más alto para el dedo */
+            cursor: grab; 
+            border-radius: 12px 12px 0 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px; 
+            color: #999; 
+            border-bottom: 1px solid #ddd; 
+        }
+
         
         .resize-dot { position: absolute; width: 16px; height: 16px; background: var(--accent-blue); border: 2px solid white; border-radius: 50%; display: none; z-index: 100; }
         .nota.selected .resize-dot { display: block; }
@@ -128,56 +158,62 @@
     function abrirLienzo() { document.getElementById('main-view').style.display = 'none'; document.getElementById('canvas-view').style.display = 'block'; }
     function cerrarLienzo() { document.getElementById('main-view').style.display = 'block'; document.getElementById('canvas-view').style.display = 'none'; }
 
-    function aplicarInteract(el) {
-    interact(el)
-      .draggable({
-        allowFrom: '.handle',
-        listeners: {
-          move(event) {
-            const target = event.target;
-            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-            target.style.transform = `translate(${x}px, ${y}px)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
-          }
-        }
-      })
-      .resizable({
-        handle: '.resize-dot',
-        edges: { right: true, bottom: true, left: true, top: true },
-        listeners: {
-          move(event) {
-            const target = event.target;
-            // Solo permite redimensionar si la nota está seleccionada (reborde azul)
-            if (!target.classList.contains('selected')) return;
+        function aplicarInteract(el) {
+        interact(el)
+          .draggable({
+            allowFrom: '.handle',
+            inertia: true, // Movimiento más natural
+            listeners: {
+              move(event) {
+                const target = event.target;
+                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                
+                // translate3d es la clave para la fluidez en móviles
+                target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+              }
+            }
+          })
+          .resizable({
+            handle: '.resize-dot',
+            edges: { right: true, bottom: true, left: true, top: true },
+            listeners: {
+              move(event) {
+                const target = event.target;
+                if (!target.classList.contains('selected')) return;
 
-            let x = (parseFloat(target.getAttribute('data-x')) || 0);
-            let y = (parseFloat(target.getAttribute('data-y')) || 0);
-            target.style.width = event.rect.width + 'px';
-            target.style.height = event.rect.height + 'px';
-            x += event.deltaRect.left;
-            y += event.deltaRect.top;
-            target.style.transform = `translate(${x}px, ${y}px)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
-          }
-        }
-      });
-}
+                let x = (parseFloat(target.getAttribute('data-x')) || 0);
+                let y = (parseFloat(target.getAttribute('data-y')) || 0);
+                
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+                
+                x += event.deltaRect.left;
+                y += event.deltaRect.top;
+                
+                target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+              }
+            }
+          });
+    }
 
-
-    function crearNotaLienzo() {
+        function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
-        div.style.left = "150px"; div.style.top = "150px";
+        div.style.left = "150px"; 
+        div.style.top = "150px";
         div.innerHTML = `
             <div class="handle">⠿ MOVER</div>
             <textarea placeholder="Escribir..."></textarea>
             <div class="resize-dot dot-br"></div>
+            <div class="resize-dot dot-tr"></div>
+            <div class="resize-dot dot-bl"></div>
         `;
         
-        // EVENTOS DE TOQUE LARGO SEPARADOS
         div.addEventListener('pointerdown', (e) => {
             div.style.zIndex = ++zIndexGlobal;
             if (!div.classList.contains('selected')) {
@@ -190,7 +226,6 @@
             }
         });
 
-        // Si el usuario mueve el dedo más de 5px, cancelamos el timer (evita selección al arrastrar)
         div.addEventListener('pointermove', (e) => {
             if (!div.classList.contains('selected') && timerPresion) {
                 clearTimeout(timerPresion);
@@ -203,6 +238,7 @@
         document.getElementById('canvas-bg').appendChild(div);
         aplicarInteract(div);
     }
+
 
     function deseleccionarTodo() {
         if (notaActiva) notaActiva.classList.remove('selected');
