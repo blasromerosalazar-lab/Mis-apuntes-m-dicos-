@@ -132,79 +132,95 @@
     function cerrarLienzo() { document.getElementById('main-view').style.display = 'block'; document.getElementById('canvas-view').style.display = 'none'; }
 
     function aplicarInteract(el) {
-        interact(el)
-          .draggable({
-            allowFrom: '.handle',
-            listeners: {
-              move(event) {
-                const target = event.target;
-                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                target.style.transform = `translate(${x}px, ${y}px)`;
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-              }
-            }
-          })
-          .resizable({
-            handle: '.resize-dot',
-            edges: { right: true, bottom: true, left: true, top: true },
-            listeners: {
-              move(event) {
-                const target = event.target;
-                let x = (parseFloat(target.getAttribute('data-x')) || 0);
-                let y = (parseFloat(target.getAttribute('data-y')) || 0);
+    interact(el)
+      .draggable({
+        allowFrom: '.handle', // Solo mueve desde la barra gris
+        listeners: {
+          move(event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+          }
+        }
+      })
+      .resizable({
+        handle: '.resize-dot', 
+        edges: { left: true, right: true, bottom: true, top: true },
+        listeners: {
+          move(event) {
+            const target = event.target;
 
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
+            // --- EL CAMBIO CLAVE AQUÍ ---
+            // Si la nota NO tiene el reborde azul, no permitimos redimensionar
+            if (!target.classList.contains('selected')) return;
 
-                x += event.deltaRect.left;
-                y += event.deltaRect.top;
+            let x = (parseFloat(target.getAttribute('data-x')) || 0);
+            let y = (parseFloat(target.getAttribute('data-y')) || 0);
 
-                target.style.transform = `translate(${x}px, ${y}px)`;
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-              }
-            }
-          });
-    }
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
+
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+          }
+        }
+      });
+}
+
 
     function crearNotaLienzo() {
-        const div = document.createElement('div');
-        div.className = 'nota';
-        div.style.left = "150px"; div.style.top = "150px";
-        div.innerHTML = `
-            <div class="handle">⠿ MOVER</div>
-            <textarea placeholder="Escribir..."></textarea>
-            <div class="resize-dot dot-br"></div>
-            <div class="resize-dot dot-tr"></div>
-            <div class="resize-dot dot-bl"></div>
-        `;
+    const div = document.createElement('div');
+    div.className = 'nota';
+    div.style.left = "150px"; 
+    div.style.top = "150px";
+    
+    // Agregamos los puntos de redimensión en el HTML base
+    div.innerHTML = `
+        <div class="handle">⠿ MOVER</div>
+        <textarea placeholder="Escribir..."></textarea>
+        <div class="resize-dot dot-br"></div>
+        <div class="resize-dot dot-tr"></div>
+        <div class="resize-dot dot-bl"></div>
+    `;
+    
+    // --- LÓGICA DE PROTECCIÓN Y SELECCIÓN ---
+    
+    div.addEventListener('pointerdown', (e) => {
+        div.style.zIndex = ++zIndexGlobal;
         
-        div.addEventListener('pointerdown', () => {
-            div.style.zIndex = ++zIndexGlobal;
-            // Solo iniciamos el timer si NO está ya seleccionada
-            if (!div.classList.contains('selected')) {
-                timerPresion = setTimeout(() => {
-                    deseleccionarTodo();
-                    notaActiva = div;
-                    div.classList.add('selected');
-                    document.getElementById('delete-tool').classList.add('enabled');
-                }, 1000); 
-            }
-        });
+        // Si la nota NO está seleccionada, iniciamos el cronómetro de 1 segundo
+        if (!div.classList.contains('selected')) {
+            timerPresion = setTimeout(() => {
+                activarEdicion(div); // Solo aquí aparece el reborde azul
+            }, 1000); 
+        }
+    });
 
-        // Si hay movimiento ANTES de que pase el segundo, cancelamos el timer
-        div.addEventListener('pointermove', () => {
-            if (!div.classList.contains('selected')) clearTimeout(timerPresion);
-        });
+    div.addEventListener('pointermove', () => {
+        // REGLA DE ORO: Si el usuario mueve el dedo (para arrastrar la nota),
+        // cancelamos el cronómetro. Así evitamos que el reborde salga por error.
+        if (!div.classList.contains('selected')) {
+            clearTimeout(timerPresion);
+        }
+    });
 
-        div.addEventListener('pointerup', () => clearTimeout(timerPresion));
-        div.addEventListener('pointerleave', () => clearTimeout(timerPresion));
+    // Si levanta el dedo o lo saca de la nota antes del segundo, cancelamos.
+    div.addEventListener('pointerup', () => clearTimeout(timerPresion));
+    div.addEventListener('pointerleave', () => clearTimeout(timerPresion));
 
-        document.getElementById('canvas-bg').appendChild(div);
-        aplicarInteract(div);
-    }
+    document.getElementById('canvas-bg').appendChild(div);
+    
+    // Llamamos a interact para que sepa cómo moverse y redimensionar
+    aplicarInteract(div);
+}
+
 
     function deseleccionarTodo() {
         if (notaActiva) notaActiva.classList.remove('selected');
