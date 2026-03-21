@@ -127,7 +127,7 @@
     let materiaSeleccionada = null; 
     let notaActiva = null;
     let timerPresion; 
-    let zIndexGlobal = 100;
+    let zIndexGlobal = 100; // localStorage.clear();
     
 
     // --- NAVEGACIÓN Y MATERIAS ---
@@ -200,12 +200,7 @@ function aplicarInteract(el) {
                 endOnly: true
             })
         ],
-        modifiers: [
-            interact.modifiers.restrictRect({
-                restriction: 'parent',
-                endOnly: true
-            })
-        ],
+          
         listeners: {
           move(event) {
             const target = event.target;
