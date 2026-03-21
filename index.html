@@ -215,41 +215,38 @@ function aplicarInteract(el) {
         }
       })
       .resizable({
-        // Permitimos redimensionar desde los bordes y las esquinas
-        edges: { left: true, right: true, bottom: true, top: true },
-        listeners: {
-          move(event) {
+    // 👇 Solo permite redimensionar usando los puntos azules
+    handle: '.resize-dot', 
+    edges: { left: true, right: true, bottom: true, top: true },
+    listeners: {
+        move(event) {
             const target = event.target;
             let x = parseFloat(target.getAttribute('data-x')) || 0;
             let y = parseFloat(target.getAttribute('data-y')) || 0;
 
-            // Actualizamos el ancho y alto
             target.style.width = event.rect.width + 'px';
             target.style.height = event.rect.height + 'px';
 
-            // Ajustamos la posición si se estira desde la izquierda o arriba
             x += event.deltaRect.left;
             y += event.deltaRect.top;
 
             target.style.transform = `translate(${x}px, ${y}px)`;
             target.setAttribute('data-x', x);
             target.setAttribute('data-y', y);
-          }
-        },
-        modifiers: [
-          interact.modifiers.restrictSize({
+        }
+    },
+    modifiers: [
+        interact.modifiers.restrictSize({
             min: { width: 160, height: 100 }
-          })
-        ]
-      });
-}
+        })
+    ]
+})
 
     // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
     
     function crearNotaLienzo() {
     const div = document.createElement('div');
     div.className = 'nota';
-    // Posición inicial
     div.style.left = "50px"; 
     div.style.top = "50px";
     
@@ -261,12 +258,10 @@ function aplicarInteract(el) {
         <div class="resize-dot dot-bl"></div>
     `;
     
-    // Gestión del toque y selección
     div.addEventListener('pointerdown', (e) => {
-        // Traer al frente
         div.style.zIndex = ++zIndexGlobal;
         
-        // Si no está seleccionada, esperamos 1 segundo para activar edición
+        // Iniciamos el temporizador para el reborde azul
         if (!div.classList.contains('selected')) {
             timerPresion = setTimeout(() => {
                 activarEdicion(div);
@@ -274,12 +269,15 @@ function aplicarInteract(el) {
         }
     });
 
+    // 👇 Si el usuario mueve el dedo o levanta antes del segundo, cancelamos la edición
+    div.addEventListener('pointermove', () => clearTimeout(timerPresion));
     div.addEventListener('pointerup', () => clearTimeout(timerPresion));
     div.addEventListener('pointerleave', () => clearTimeout(timerPresion));
 
     document.getElementById('canvas-bg').appendChild(div);
     aplicarInteract(div);
 }
+
 
 
     function activarEdicion(el) {
