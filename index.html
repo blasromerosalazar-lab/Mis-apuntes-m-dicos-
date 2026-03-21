@@ -129,35 +129,43 @@
     function cerrarLienzo() { document.getElementById('main-view').style.display = 'block'; document.getElementById('canvas-view').style.display = 'none'; }
 
     function aplicarInteract(el) {
-        interact(el)
-          .draggable({
-            allowFrom: '.handle',
-            listeners: {
-              move(event) {
-                const target = event.target;
-                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                target.style.transform = `translate(${x}px, ${y}px)`;
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-              }
-            }
-          })
-          .resizable({
-            handle: '.resize-dot',
-            edges: { right: true, bottom: true },
-            listeners: {
-              move(event) {
-                const target = event.target;
-                // BLOQUEO DE SEGURIDAD: Solo redimensiona si está seleccionada
-                if (!target.classList.contains('selected')) return;
+    interact(el)
+      .draggable({
+        allowFrom: '.handle',
+        listeners: {
+          move(event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+          }
+        }
+      })
+      .resizable({
+        handle: '.resize-dot',
+        edges: { right: true, bottom: true, left: true, top: true },
+        listeners: {
+          move(event) {
+            const target = event.target;
+            // Solo permite redimensionar si la nota está seleccionada (reborde azul)
+            if (!target.classList.contains('selected')) return;
 
-                target.style.width = event.rect.width + 'px';
-                target.style.height = event.rect.height + 'px';
-              }
-            }
-          });
-    }
+            let x = (parseFloat(target.getAttribute('data-x')) || 0);
+            let y = (parseFloat(target.getAttribute('data-y')) || 0);
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+          }
+        }
+      });
+}
+
 
     function crearNotaLienzo() {
         const div = document.createElement('div');
