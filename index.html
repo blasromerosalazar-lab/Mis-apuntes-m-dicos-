@@ -191,42 +191,49 @@
 function aplicarInteract(el) {
     interact(el)
       .draggable({
-        allowFrom: '.handle', // Solo arrastrable desde la barra superior
         inertia: true,
         modifiers: [
-            interact.modifiers.restrict({
-                restriction: 'parent'
+            interact.modifiers.restrictRect({
+                restriction: 'parent',
+                endOnly: true
             })
         ],
         listeners: {
           move(event) {
-            const t = event.target;
-            const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+            const target = event.target;
+            // Recuperamos la posición actual o empezamos en 0
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-            t.style.transform = `translate(${x}px, ${y}px)`;
-            t.setAttribute('data-x', x);
-            t.setAttribute('data-y', y);
+            // Aplicamos el movimiento
+            target.style.transform = `translate(${x}px, ${y}px)`;
+
+            // Guardamos la nueva posición en los atributos del elemento
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
           }
         }
       })
       .resizable({
+        // Permitimos redimensionar desde los bordes y las esquinas
         edges: { left: true, right: true, bottom: true, top: true },
         listeners: {
           move(event) {
-            const t = event.target;
-            let x = parseFloat(t.getAttribute('data-x')) || 0;
-            let y = parseFloat(t.getAttribute('data-y')) || 0;
+            const target = event.target;
+            let x = parseFloat(target.getAttribute('data-x')) || 0;
+            let y = parseFloat(target.getAttribute('data-y')) || 0;
 
-            t.style.width = event.rect.width + 'px';
-            t.style.height = event.rect.height + 'px';
+            // Actualizamos el ancho y alto
+            target.style.width = event.rect.width + 'px';
+            target.style.height = event.rect.height + 'px';
 
+            // Ajustamos la posición si se estira desde la izquierda o arriba
             x += event.deltaRect.left;
             y += event.deltaRect.top;
 
-            t.style.transform = `translate(${x}px, ${y}px)`;
-            t.setAttribute('data-x', x);
-            t.setAttribute('data-y', y);
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
           }
         },
         modifiers: [
@@ -236,29 +243,44 @@ function aplicarInteract(el) {
         ]
       });
 }
+
     // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
+    
     function crearNotaLienzo() {
+    const div = document.createElement('div');
+    div.className = 'nota';
+    // Posición inicial
+    div.style.left = "50px"; 
+    div.style.top = "50px";
+    
+    div.innerHTML = `
+        <div class="handle">⠿ MANTENER PARA EDITAR</div>
+        <textarea placeholder="Escribir..."></textarea>
+        <div class="resize-dot dot-br"></div>
+        <div class="resize-dot dot-tr"></div>
+        <div class="resize-dot dot-bl"></div>
+    `;
+    
+    // Gestión del toque y selección
+    div.addEventListener('pointerdown', (e) => {
+        // Traer al frente
+        div.style.zIndex = ++zIndexGlobal;
         
-        const div = document.createElement('div');
-        div.className = 'nota';
-        div.style.left = "150px"; div.style.top = "150px";
-        div.innerHTML = `<div class="handle">⠿ MOVER</div><textarea placeholder="Escribir..."></textarea><div class="resize-dot dot-br"></div><div class="resize-dot dot-tr"></div><div class="resize-dot dot-bl"></div>`;
-        
-        div.addEventListener('pointerdown', (e) => {
-            e.stopPropagation();
-            div.style.zIndex = ++zIndexGlobal;
-            if (!div.classList.contains('selected')) {
-                timerPresion =setTimeout(() => activarEdicion(div), 500);
+        // Si no está seleccionada, esperamos 1 segundo para activar edición
+        if (!div.classList.contains('selected')) {
+            timerPresion = setTimeout(() => {
+                activarEdicion(div);
+            }, 1000); 
         }
     });
 
     div.addEventListener('pointerup', () => clearTimeout(timerPresion));
-
-    // 👇 IMPORTANTE: elimina pointermove (rompía todo)
+    div.addEventListener('pointerleave', () => clearTimeout(timerPresion));
 
     document.getElementById('canvas-bg').appendChild(div);
-        aplicarInteract(div);
+    aplicarInteract(div);
 }
+
 
     function activarEdicion(el) {
         deseleccionarTodo();
