@@ -18,7 +18,7 @@
 
         /* VISTAS */
         #main-view { display: block; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; padding-bottom: 100px; }
-        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: pan-x pan-y; }
+        #canvas-view { display: none; width: 100vw; height: 100vh; position: relative; overflow: hidden; touch-action: none; }
 
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .back-nav { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--accent-blue); margin-bottom: 20px; font-weight: bold; }
@@ -31,14 +31,13 @@
         }
         .card h3 { margin: 0; font-size: 15px; color: var(--accent-blue); text-transform: uppercase; }
 
-        /* LIENZO PUNTEADO 40PX */
+        /* LIENZO */
         #canvas-bg {
             width: 5000px; height: 5000px; position: absolute; top: 0; left: 0;
             background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px);
             background-size: 40px 40px;
         }
 
-        /* BARRA DE HERRAMIENTAS */
         .floating-tools {
             position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
             background: var(--ui-glass); backdrop-filter: blur(10px);
@@ -53,38 +52,32 @@
         .tool-btn.active { color: var(--accent-blue); }
         .tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
         .tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
-        .divider { width: 1px; height: 25px; background: #30363d; }
 
         /* NOTAS */
-        .nota { position: absolute; background: white; border-radius: 12px; width: 250px; min-height: 120px; color: #111; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; display: flex; flex-direction: column; overflow: visible; border: 2px solid transparent; touch-action: none; }
-         .nota.selected {
-    border: 2px solid var(--accent-blue);
-    box-shadow: 
-        0 0 0 2px rgba(52, 152, 219, 0.3),
-        0 0 20px rgba(52, 152, 219, 0.8),
-        0 0 40px rgba(52, 152, 219, 0.4);
-    transition: all 0.2s ease;
-         }
+        .nota { 
+            position: absolute; background: white; border-radius: 12px; 
+            width: 250px; min-height: 120px; color: #111; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; 
+            display: flex; flex-direction: column; overflow: visible; 
+            border: 2px solid transparent; touch-action: none; 
+        }
+        .nota.selected { border: 2px solid var(--accent-blue); }
         
-         .resize-dot {
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    background: var(--accent-blue);
-    border: 3px solid white;
-    border-radius: 50%;
-    display: none;
-    z-index: 100;
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.9);
-    pointer-events: all;
-}
+        .resize-dot {
+            position: absolute; width: 14px; height: 14px;
+            background: var(--accent-blue); border: 2px solid white;
+            border-radius: 50%; display: none; z-index: 100;
+        }
         .nota.selected .resize-dot { display: block; }
-        .dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
-        .dot-tr { top: -8px; right: -8px; cursor: nesw-resize; }
-        .dot-bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
+        .dot-br { bottom: -7px; right: -7px; cursor: nwse-resize; }
 
-        .handle { background: #f5f5f5; height: 35px; cursor: grab; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #999; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; border-radius: 0 0 12px 12px; }
+        .handle { 
+            background: #f5f5f5; height: 35px; cursor: grab; 
+            border-radius: 12px 12px 0 0; display: flex; 
+            align-items: center; justify-content: center; 
+            font-size: 10px; color: #999; border-bottom: 1px solid #ddd; 
+        }
+        textarea { width: 100%; flex-grow: 1; border: none; padding: 12px; box-sizing: border-box; resize: none; font-size: 16px; outline: none; background: transparent; }
 
         #add-btn { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; border: none; color: white; font-size: 35px; display: none; cursor: pointer; z-index: 1001; }
         #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0d1117; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #30363d; z-index: 1000; }
@@ -111,12 +104,8 @@
     <button onclick="cerrarLienzo()" style="position:fixed; top:20px; left:20px; z-index:3000; background:var(--ui-glass); border:1px solid #30363d; color:white; padding:10px 18px; border-radius:50px; cursor:pointer;">← Salir</button>
     <div id="canvas-bg" data-x="0" data-y="0" onclick="deseleccionarTodo()"></div>
     <div class="floating-tools">
-        <button class="tool-btn">⛶</button><button class="tool-btn">⚙</button>
-        <div class="divider"></div>
-        <button class="tool-btn">✎</button>
         <button class="tool-btn active" onclick="crearNotaLienzo()">T</button>
         <button id="delete-tool" class="tool-btn danger" onclick="eliminarNota()">🗑️</button>
-        <div class="divider"></div>
         <button class="tool-btn" onclick="cerrarLienzo()">🏠</button>
     </div>
 </div>
@@ -127,10 +116,8 @@
     let materiaSeleccionada = null; 
     let notaActiva = null;
     let timerPresion; 
-    let zIndexGlobal = 100; // localStorage.clear();
-    
+    let zIndexGlobal = 100;
 
-    // --- NAVEGACIÓN Y MATERIAS ---
     function cambiarSeccion(tipo) {
         seccionActual = tipo; materiaSeleccionada = null;
         document.getElementById('breadcrumb').style.display = 'none';
@@ -173,7 +160,7 @@
             else {
                 const mat = db.materias.find(m => m.id == materiaSeleccionada);
                 mat.temas.push(nom);
-                if(!db.recientes.find(r => r.titulo === nom)) db.recientes.push({ titulo: nom });
+                db.recientes.push({ titulo: nom });
             }
             localStorage.setItem('mednotes_vUCV', JSON.stringify(db));
             renderizar();
@@ -189,64 +176,35 @@
         document.getElementById('main-view').style.display = 'block';
         document.getElementById('canvas-view').style.display = 'none';
     }
-function aplicarInteract(el) {
-    interact(el)
-      .draggable({
-        inertia: true,
-          allowFrom: '.handle', 
-        modifiers: [
-            interact.modifiers.restrictRect({
-                restriction: 'parent',
-                endOnly: true
-            })
-        ],
-          
-        listeners: {
-          move(event) {
-            const target = event.target;
-            // Recuperamos la posición actual o empezamos en 0
-            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-            // Aplicamos el movimiento
-            target.style.transform = `translate(${x}px, ${y}px)`;
+    function aplicarInteract(el) {
+        interact(el)
+          .draggable({
+            allowFrom: '.handle', // Mover solo desde la barra superior
+            listeners: {
+              move(event) {
+                const target = event.target;
+                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                target.style.transform = `translate(${x}px, ${y}px)`;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+              }
+            }
+          })
+          .resizable({
+            handle: '.resize-dot', // Redimensionar solo desde el punto azul
+            edges: { right: true, bottom: true },
+            listeners: {
+              move(event) {
+                const target = event.target;
+                target.style.width = event.rect.width + 'px';
+                target.style.height = event.rect.height + 'px';
+              }
+            }
+          });
+    }
 
-            // Guardamos la nueva posición en los atributos del elemento
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
-          }
-        }
-      })
-      .resizable({
-    // 👇 Solo permite redimensionar usando los puntos azules
-    handle: '.resize-dot', 
-    edges: { left: true, right: true, bottom: true, top: true },
-    listeners: {
-        move(event) {
-            const target = event.target;
-            let x = parseFloat(target.getAttribute('data-x')) || 0;
-            let y = parseFloat(target.getAttribute('data-y')) || 0;
-
-            target.style.width = event.rect.width + 'px';
-            target.style.height = event.rect.height + 'px';
-
-            x += event.deltaRect.left;
-            y += event.deltaRect.top;
-
-            target.style.transform = `translate(${x}px, ${y}px)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
-        }
-    },
-    modifiers: [
-        interact.modifiers.restrictSize({
-            min: { width: 160, height: 100 }
-        })
-    ]
-})
-
-    // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
-            
     function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
@@ -254,16 +212,14 @@ function aplicarInteract(el) {
         div.style.top = "150px";
         
         div.innerHTML = `
-            <div class="handle">⠿ MOVER (Mantener para editar)</div>
+            <div class="handle">⠿ MOVER</div>
             <textarea placeholder="Escribir..."></textarea>
             <div class="resize-dot dot-br"></div>
-            <div class="resize-dot dot-tr"></div>
-            <div class="resize-dot dot-bl"></div>
         `;
         
-        div.addEventListener('pointerdown', (e) => {
+        // Lógica de Toque Largo
+        div.addEventListener('pointerdown', () => {
             div.style.zIndex = ++zIndexGlobal;
-            // Si no está seleccionada, iniciamos el temporizador de 1 seg
             if (!div.classList.contains('selected')) {
                 timerPresion = setTimeout(() => {
                     activarEdicion(div);
@@ -271,11 +227,8 @@ function aplicarInteract(el) {
             }
         });
 
-        // Si mueves el dedo antes del segundo, se cancela el modo edición
         div.addEventListener('pointermove', () => {
-            if (!div.classList.contains('selected')) {
-                clearTimeout(timerPresion);
-            }
+            if (!div.classList.contains('selected')) clearTimeout(timerPresion);
         });
 
         div.addEventListener('pointerup', () => clearTimeout(timerPresion));
@@ -289,8 +242,7 @@ function aplicarInteract(el) {
         deseleccionarTodo();
         notaActiva = el;
         el.classList.add('selected');
-        const delBtn = document.getElementById('delete-tool');
-        if(delBtn) delBtn.classList.add('enabled');
+        document.getElementById('delete-tool').classList.add('enabled');
     }
 
     function deseleccionarTodo() {
@@ -298,20 +250,13 @@ function aplicarInteract(el) {
             notaActiva.classList.remove('selected');
             notaActiva = null;
         }
-        const delBtn = document.getElementById('delete-tool');
-        if(delBtn) delBtn.classList.remove('enabled');
+        document.getElementById('delete-tool').classList.remove('enabled');
     }
-    function eliminarNota() { 
-        if (notaActiva) { 
-            notaActiva.remove(); 
-            deseleccionarTodo(); 
-        } 
-    } // <-- ESTA LLAVE FALTABA Y ROMPÍA TODO
 
-    // --- INICIALIZACIÓN ---
+    function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
+
     window.onload = () => {
-        renderizar(); 
-
+        renderizar();
         interact('#canvas-view').draggable({
             ignoreFrom: '.nota, textarea, .handle',
             listeners: {
@@ -330,5 +275,3 @@ function aplicarInteract(el) {
 </script>
 </body>
 </html>
-
-    ​
