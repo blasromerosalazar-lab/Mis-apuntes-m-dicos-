@@ -243,7 +243,7 @@ function aplicarInteract(el) {
 })
 
     // --- LÓGICA DE NOTAS (PRESIÓN LARGA + MOVIMIENTO) ---
-        function crearNotaLienzo() {
+            function crearNotaLienzo() {
         const div = document.createElement('div');
         div.className = 'nota';
         div.style.left = "150px"; 
@@ -259,19 +259,14 @@ function aplicarInteract(el) {
         
         div.addEventListener('pointerdown', (e) => {
             div.style.zIndex = ++zIndexGlobal;
-            
-            // Si no está seleccionada, iniciamos el conteo
             if (!div.classList.contains('selected')) {
                 timerPresion = setTimeout(() => {
                     activarEdicion(div);
-                }, 1000); // 1 segundo estático para editar
+                }, 1000); 
             }
         });
 
-        // Si el dedo se mueve aunque sea un poco, cancelamos el modo edición
-        // Esto permite que puedas mover la nota libremente sin que salga el borde
-        div.addEventListener('pointermove', (e) => {
-            // Solo cancelamos si no está ya en modo edición
+        div.addEventListener('pointermove', () => {
             if (!div.classList.contains('selected')) {
                 clearTimeout(timerPresion);
             }
@@ -284,44 +279,30 @@ function aplicarInteract(el) {
         aplicarInteract(div);
     }
 
-    
     function activarEdicion(el) {
-    deseleccionarTodo();
-    notaActiva = el;
-    el.classList.add('selected');
-    // Habilita el botón de borrar en la barra de herramientas
-    document.getElementById('delete-tool').classList.add('enabled');
-}
+        deseleccionarTodo();
+        notaActiva = el;
+        el.classList.add('selected');
+        const delBtn = document.getElementById('delete-tool');
+        if(delBtn) delBtn.classList.add('enabled');
+    }
 
     function deseleccionarTodo() {
         if (notaActiva) {
             notaActiva.classList.remove('selected');
-            
             notaActiva = null;
         }
-        document.getElementById('delete-tool').classList.remove('enabled');
+        const delBtn = document.getElementById('delete-tool');
+        if(delBtn) delBtn.classList.remove('enabled');
     }
 
-    function eliminarNota() { if (notaActiva) { notaActiva.remove(); deseleccionarTodo(); } }
-        
-window.onload = () => {
-    renderizar();
+    function eliminarNota() { 
+        if (notaActiva) { 
+            notaActiva.remove(); 
+            deseleccionarTodo(); 
+        } 
+    }
 
-    interact('#canvas-view').draggable({ 
-        ignoreFrom: '.nota',
-        listeners: { move(event) {
-            if (notaActiva) return;
-
-            const bg = document.getElementById('canvas-bg');
-            const x = (parseFloat(bg.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(bg.getAttribute('data-y')) || 0) + event.dy;
-
-            bg.style.transform = `translate(${x}px, ${y}px)`;
-            bg.setAttribute('data-x', x);
-            bg.setAttribute('data-y', y);
-        }}
-    });
-};
 
 </script>
 </body>
