@@ -1,0 +1,223 @@
+:root { 
+    --bg-dark: #0b0e14; 
+    --card-dark: #161b22; 
+    --accent-blue: #3498db;
+    --text-gray: #8b949e; 
+    --ui-glass: rgba(22, 27, 34, 0.95);
+}
+
+body { 
+    margin: 0; 
+    background-color: var(--bg-dark); 
+    color: white; 
+    font-family: 'Segoe UI', sans-serif; 
+    overflow: hidden; 
+}
+
+#main-view { 
+    display: block; 
+    height: 100vh; 
+    padding: 20px; 
+    box-sizing: border-box; 
+    overflow-y: auto; 
+    padding-bottom: 100px; 
+}
+
+#canvas-view { 
+    display: none; 
+    width: 100vw; 
+    height: 100vh; 
+    position: relative; 
+    overflow: hidden; 
+    touch-action: none; 
+}
+
+.header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 25px; 
+}
+
+.back-nav { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    cursor: pointer; 
+    color: var(--accent-blue); 
+    margin-bottom: 20px; 
+    font-weight: bold; 
+}
+
+.card { 
+    background: var(--card-dark); 
+    border-radius: 12px; 
+    padding: 20px; 
+    margin-bottom: 15px; 
+    border: 1px solid #30363d; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.card h3 { 
+    margin: 0; 
+    font-size: 15px; 
+    color: var(--accent-blue); 
+    text-transform: uppercase; 
+}
+
+#canvas-bg { 
+    width: 5000px; 
+    height: 5000px; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    background-image: radial-gradient(#2f353c 1.5px, transparent 1.5px); 
+    background-size: 40px 40px; 
+}
+
+#exit-btn {
+    position: fixed; 
+    top: 20px; 
+    left: 20px; 
+    z-index: 3000; 
+    background: var(--ui-glass); 
+    border: 1px solid #30363d; 
+    color: white; 
+    padding: 10px 18px; 
+    border-radius: 50px; 
+    cursor: pointer;
+}
+
+.floating-tools { 
+    position: fixed; 
+    bottom: 25px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: var(--ui-glass); 
+    backdrop-filter: blur(10px); 
+    padding: 10px 20px; 
+    border-radius: 20px; 
+    border: 1px solid #30363d; 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+    z-index: 2000; 
+}
+
+.tool-btn { 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 12px; 
+    border: none; 
+    background: transparent; 
+    color: #8b949e; 
+    cursor: pointer; 
+    font-size: 20px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.tool-btn.active { color: var(--accent-blue); }
+.tool-btn.danger { color: #e74c3c; opacity: 0.2; pointer-events: none; transition: 0.3s; }
+.tool-btn.danger.enabled { opacity: 1; pointer-events: auto; }
+
+.nota { 
+    position: absolute; 
+    background: white; 
+    border-radius: 12px; 
+    width: 250px; 
+    min-height: 120px; 
+    color: #111; 
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
+    z-index: 10; 
+    display: flex; 
+    flex-direction: column; 
+    border: 2px solid transparent; 
+    touch-action: none; 
+    user-select: none;
+    will-change: transform;
+}
+
+.nota.selected { border: 2px solid var(--accent-blue); }
+
+.handle { 
+    background: #f5f5f5; 
+    height: 45px; 
+    cursor: grab; 
+    border-radius: 12px 12px 0 0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 12px; 
+    color: #999; 
+    border-bottom: 1px solid #ddd; 
+}
+
+.resize-dot { 
+    position: absolute; 
+    width: 16px; 
+    height: 16px; 
+    background: var(--accent-blue); 
+    border: 2px solid white; 
+    border-radius: 50%; 
+    display: none; 
+    z-index: 100; 
+}
+
+.nota.selected .resize-dot { display: block; }
+.dot-br { bottom: -8px; right: -8px; cursor: nwse-resize; }
+
+textarea { 
+    width: 100%; 
+    flex-grow: 1; 
+    border: none; 
+    padding: 12px; 
+    box-sizing: border-box; 
+    resize: none; 
+    font-size: 16px; 
+    outline: none; 
+    background: transparent; 
+}
+
+#add-btn { 
+    position: fixed; 
+    bottom: 90px; 
+    right: 20px; 
+    width: 60px; 
+    height: 60px; 
+    background: var(--accent-blue); 
+    border-radius: 50%; 
+    border: none; 
+    color: white; 
+    font-size: 35px; 
+    display: none; 
+    cursor: pointer; 
+    z-index: 1001; 
+}
+
+#bottom-nav { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    background: #0d1117; 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 15px 0; 
+    border-top: 1px solid #30363d; 
+    z-index: 1000; 
+}
+
+.nav-item { 
+    text-align: center; 
+    font-size: 11px; 
+    color: var(--text-gray); 
+    cursor: pointer; 
+    flex: 1; 
+}
+
+.nav-item.active { color: var(--accent-blue); }
